@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════
+   Shipment Tracker Panel — Component Styles
+   ═══════════════════════════════════════════════ */
+
+/* ── Card header ── */
+.card-header {
+    display: flex;
+    align-items: center;
+}
+
+/* ── Loading / Empty states ── */
+.loading-container,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.empty-icon {
+    opacity: 0.4;
+}
+
+/* ── Error banner ── */
+.error-banner {
+    background-color: #fef0f0;
+    border: 1px solid #c23934;
+    border-radius: 0.25rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.error-content {
+    display: flex;
+    align-items: flex-start;
+}
+
+/* ═══════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════ */
+.progress-section {
+    padding: 0.75rem 0 0.5rem;
+}
+
+.progress-wrapper {
+    position: relative;
+}
+
+/* Connecting track line — sits behind steps */
+.progress-track {
+    position: absolute;
+    top: 1rem;           /* align with circle center */
+    left: 10%;
+    right: 10%;
+    height: 4px;
+    background-color: #e0e5ee;
+    border-radius: 2px;
+    z-index: 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0070d2, #1e88e5);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Steps row */
+.steps-row {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+}
+
+.step-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+/* Circle */
+.step-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border: 2px solid #c9d0d9;
+    margin-bottom: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+.circle-done {
+    background-color: #0070d2;
+    border-color: #0070d2;
+}
+
+.circle-current {
+    background-color: #0070d2;
+    border-color: #0070d2;
+    box-shadow: 0 0 0 4px rgba(0, 112, 210, 0.18);
+}
+
+.step-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #8b96a7;
+}
+
+.circle-done .step-num,
+.circle-current .step-num {
+    color: #ffffff;
+}
+
+/* Check icon inside completed circle */
+.check-icon {
+    --lwc-colorTextIconDefault: #ffffff;
+}
+
+/* Step label */
+.step-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #8b96a7;
+    text-align: center;
+    max-width: 56px;
+    line-height: 1.2;
+}
+
+.label-done {
+    color: #0070d2;
+    font-weight: 600;
+}
+
+.label-current {
+    color: #0070d2;
+    font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════
+   DETAILS GRID
+   ═══════════════════════════════════════════════ */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem 1.25rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06rem;
+    text-transform: uppercase;
+    color: #8b96a7;
+    margin-bottom: 0.2rem;
+}
+
+.detail-value {
+    font-size: 0.875rem;
+    color: #16325c;
+    display: flex;
+    align-items: center;
+}
+
+/* Tracking link */
+.tracking-link {
+    color: #0070d2;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.tracking-link:hover {
+    color: #005fb2;
+    text-decoration: underline;
+}
+
+.external-icon {
+    opacity: 0.6;
+}
+
+/* ── Status pill ── */
+.status-pill {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03rem;
+    text-transform: uppercase;
+}
+
+.pill-delivered  { background-color: #2e844a1a; color: #2e844a; }
+.pill-transit    { background-color: #0070d21a; color: #0070d2; }
+.pill-picked     { background-color: #ffb75e33; color: #c2871e; }
+.pill-ordered    { background-color: #e0e5ee;   color: #5d7896; }
+
+/* ── ETA coloring ── */
+.eta-value { font-weight: 500; }
+.eta-ok        { color: #2e844a; }
+.eta-imminent  { color: #e07010; }
+.eta-overdue   { color: #c23934; font-weight: 700; }
+.eta-delivered { color: #2e844a; }
+
+/* ═══════════════════════════════════════════════
+   FOOTER / REFRESH
+   ═══════════════════════════════════════════════ */
+.footer-section {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e0e5ee;
+}
+
+.refreshing-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.last-refreshed-text {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #2e844a;
+}
+
+.success-icon {
+    --lwc-colorTextIconSuccess: #2e844a;
+}

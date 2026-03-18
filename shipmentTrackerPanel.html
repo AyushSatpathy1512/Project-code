@@ -1,0 +1,233 @@
+<template>
+    <lightning-card class="shipment-tracker-card">
+        <!-- Card Header -->
+        <div slot="title" class="card-header">
+            <lightning-icon icon-name="standard:shipment" size="small" class="slds-m-right_x-small"></lightning-icon>
+            <span class="slds-text-heading_small">Shipment Status Tracker</span>
+        </div>
+
+        <div slot="actions">
+            <lightning-button-icon
+                icon-name="utility:refresh"
+                variant="border-filled"
+                alternative-text="Refresh Status"
+                title="Refresh Status from ShipFast API"
+                onclick={handleRefresh}
+                disabled={isRefreshing}
+                size="small">
+            </lightning-button-icon>
+        </div>
+
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+            <!-- ── Loading State ── -->
+            <template lwc:if={isLoading}>
+                <div class="loading-container">
+                    <lightning-spinner
+                        alternative-text="Loading shipment data..."
+                        size="medium"
+                        variant="brand">
+                    </lightning-spinner>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                        Loading shipment data...
+                    </p>
+                </div>
+            </template>
+
+            <!-- ── Error State ── -->
+            <template lwc:elseif={hasError}>
+                <div class="error-banner" role="alert">
+                    <div class="error-content">
+                        <lightning-icon
+                            icon-name="utility:error"
+                            size="small"
+                            variant="error"
+                            class="slds-m-right_x-small">
+                        </lightning-icon>
+                        <span class="slds-text-body_small">{errorMessage}</span>
+                    </div>
+                    <div class="slds-m-top_small">
+                        <lightning-button
+                            label="Retry"
+                            variant="neutral"
+                            size="small"
+                            icon-name="utility:refresh"
+                            onclick={handleRetry}>
+                        </lightning-button>
+                        <lightning-button
+                            label="Dismiss"
+                            variant="neutral"
+                            size="small"
+                            class="slds-m-left_x-small"
+                            onclick={clearError}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ── No Shipment State ── -->
+            <template lwc:elseif={noShipment}>
+                <div class="empty-state">
+                    <lightning-icon
+                        icon-name="utility:package"
+                        size="large"
+                        class="empty-icon">
+                    </lightning-icon>
+                    <p class="slds-text-heading_small slds-m-top_small">No Shipment Found</p>
+                    <p class="slds-text-body_small slds-text-color_weak">
+                        No shipment record is linked to this record yet.
+                    </p>
+                </div>
+            </template>
+
+            <!-- ── Shipment Data ── -->
+            <template lwc:else>
+
+                <!-- Progress Bar Section -->
+                <div class="progress-section slds-m-bottom_medium">
+                    <div class="progress-wrapper">
+                        <!-- Track Line -->
+                        <div class="progress-track">
+                            <div class="progress-fill" style={progressBarStyle}></div>
+                        </div>
+
+                        <!-- Steps -->
+                        <div class="steps-row">
+                            <template for:each={statusSteps} for:item="step">
+                                <div key={step.label} class={step.containerClass}>
+                                    <div class={step.circleClass}>
+                                        <template lwc:if={step.isCompleted}>
+                                            <lightning-icon
+                                                icon-name="utility:check"
+                                                size="xx-small"
+                                                alternative-text="Completed"
+                                                class="check-icon">
+                                            </lightning-icon>
+                                        </template>
+                                        <template lwc:else>
+                                            <span class="step-num">{step.index}</span>
+                                        </template>
+                                    </div>
+                                    <div class={step.labelClass}>{step.label}</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="slds-border_top slds-m-bottom_medium"></div>
+
+                <!-- Details Grid -->
+                <div class="details-grid slds-m-bottom_medium">
+
+                    <!-- Tracking Number -->
+                    <div class="detail-item">
+                        <div class="detail-label">Tracking Number</div>
+                        <div class="detail-value">
+                            <a href={trackingUrl} target="_blank" rel="noopener noreferrer" class="tracking-link">
+                                <lightning-icon
+                                    icon-name="utility:truck"
+                                    size="xx-small"
+                                    class="slds-m-right_xx-small link-icon">
+                                </lightning-icon>
+                                {shipment.Tracking_Number__c}
+                                <lightning-icon
+                                    icon-name="utility:new_window"
+                                    size="xx-small"
+                                    class="slds-m-left_xx-small external-icon">
+                                </lightning-icon>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Carrier -->
+                    <div class="detail-item">
+                        <div class="detail-label">Carrier</div>
+                        <div class="detail-value">
+                            <lightning-icon
+                                icon-name="utility:plane"
+                                size="xx-small"
+                                class="slds-m-right_xx-small">
+                            </lightning-icon>
+                            {shipment.Carrier__c}
+                        </div>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div class="detail-item">
+                        <div class="detail-label">Current Status</div>
+                        <div class="detail-value">
+                            <span class={statusPillClass}>{shipment.Status__c}</span>
+                        </div>
+                    </div>
+
+                    <!-- ETA Countdown -->
+                    <div class="detail-item">
+                        <div class="detail-label">Estimated Delivery</div>
+                        <div class={etaValueClass}>
+                            <lightning-icon
+                                icon-name="utility:clock"
+                                size="xx-small"
+                                class="slds-m-right_xx-small">
+                            </lightning-icon>
+                            {etaDisplay}
+                        </div>
+                    </div>
+
+                    <!-- Last Updated -->
+                    <div class="detail-item full-width">
+                        <div class="detail-label">Last Record Update</div>
+                        <div class="detail-value">
+                            <lightning-formatted-date-time
+                                value={shipment.LastModifiedDate}
+                                year="numeric"
+                                month="short"
+                                day="2-digit"
+                                hour="2-digit"
+                                minute="2-digit">
+                            </lightning-formatted-date-time>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer / Refresh Section -->
+                <div class="footer-section">
+                    <lightning-button
+                        label={refreshLabel}
+                        variant="brand"
+                        icon-name="utility:refresh"
+                        icon-position="left"
+                        onclick={handleRefresh}
+                        disabled={isRefreshing}>
+                    </lightning-button>
+
+                    <template lwc:if={isRefreshing}>
+                        <div class="refreshing-indicator">
+                            <lightning-spinner
+                                alternative-text="Refreshing status..."
+                                size="small"
+                                variant="brand">
+                            </lightning-spinner>
+                            <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">
+                                Calling ShipFast API...
+                            </span>
+                        </div>
+                    </template>
+
+                    <template lwc:if={lastRefreshed}>
+                        <span class="last-refreshed-text">
+                            <lightning-icon
+                                icon-name="utility:success"
+                                size="xx-small"
+                                class="slds-m-right_xx-small success-icon">
+                            </lightning-icon>
+                            Refreshed at {lastRefreshed}
+                        </span>
+                    </template>
+                </div>
+
+            </template>
+        </div>
+    </lightning-card>
+</template>
