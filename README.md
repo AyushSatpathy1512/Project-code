@@ -12,3 +12,11 @@ Summarises shipments grouped by Sales Rep and Status for the current quarter. He
 
 
 Real-time view of NovaTech's ShipFast logistics pipeline — tracking shipment status distribution, carrier delivery performance, API integration health, and rep-level fulfillment activity in one place.
+
+
+
+
+
+
+
+Monitors ShipFast API integration health by tracking total call volume, INFO vs ERROR log entries, and success rate percentage via Nebula Logger.
