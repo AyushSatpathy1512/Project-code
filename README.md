@@ -6,3 +6,9 @@ Average delivery duration per carrier for all completed (Delivered) shipments. U
 
 
 Summarises shipments grouped by Sales Rep and Status for the current quarter. Helps Team Leads spot bottlenecks and compare delivery completion rates across the team.
+
+
+
+
+
+Real-time view of NovaTech's ShipFast logistics pipeline — tracking shipment status distribution, carrier delivery performance, API integration health, and rep-level fulfillment activity in one place.
