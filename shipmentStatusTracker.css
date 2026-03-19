@@ -1,0 +1,365 @@
+/* ═══════════════════════════════════════════════════════
+   Shipment Status Tracker – LWC Stylesheet
+   Mirrors the standalone HTML prototype design
+═══════════════════════════════════════════════════════ */
+
+/* ── Layout ── */
+.tracker-wrap {
+    padding: 1.5rem 0;
+    max-width: 640px;
+    margin: 0 auto;
+    font-family: var(--lwc-fontFamily, 'Salesforce Sans', sans-serif);
+}
+
+.tracker-card {
+    background: var(--lwc-colorBackgroundAlt, #ffffff);
+    border: 0.5px solid var(--lwc-colorBorder, #e5e7eb);
+    border-radius: 12px;
+    padding: 1.75rem 1.5rem 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Header ── */
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--lwc-colorTextLabel, #6b7280);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* ── Status Badges ── */
+.status-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-ordered,
+.loading-badge   { background: #F3F4F6; color: #374151; }
+.badge-picked    { background: #FEF3C7; color: #92400E; }
+.badge-shipped   { background: #DBEAFE; color: #1E40AF; }
+.badge-in-transit{ background: #E1F5EE; color: #0F6E56; }
+.badge-delivered { background: #D1FAE5; color: #065F46; }
+
+/* ── Progress Steps ── */
+.steps {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+/* Connector lines rendered as ::before isn't available, so
+   we render them as sibling divs inside each step (except first). */
+.step-connector {
+    position: absolute;
+    top: 14px;
+    right: 50%;
+    left: -50%;
+    height: 2px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.step-connector.done   { background: #1D9E75; }
+.step-connector.pending{ background: #e5e7eb; }
+
+/* ── Step Dot ── */
+.step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e5e7eb;
+    background: #ffffff;
+    position: relative;
+    z-index: 2;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.step-dot.done {
+    background: #1D9E75;
+    border-color: #1D9E75;
+}
+
+.step-dot.active {
+    background: #ffffff;
+    border-color: #1D9E75;
+    box-shadow: 0 0 0 4px #E1F5EE;
+}
+
+.step-dot.pending {
+    border-color: #e5e7eb;
+}
+
+.dot-check {
+    width: 12px;
+    height: 12px;
+}
+
+.dot-active-ring {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1D9E75;
+}
+
+.dot-pending {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d1d5db;
+}
+
+/* ── Step Labels ── */
+.step-label {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #9ca3af;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.step-label.done   { color: #0F6E56; }
+.step-label.active { color: #111827; font-weight: 600; }
+
+/* ── Divider ── */
+.divider {
+    border: none;
+    border-top: 0.5px solid #e5e7eb;
+    margin: 0 0 1.25rem;
+}
+
+/* ── Info Rows ── */
+.info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+}
+
+.eta-row { align-items: flex-start; }
+
+.info-label {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.info-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Courier New', monospace;
+}
+
+.eta-date {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+    font-family: inherit;
+}
+
+.ext-link {
+    color: #185FA5;
+    text-decoration: none;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: inherit;
+    font-weight: 400;
+}
+
+.ext-link:hover { text-decoration: underline; }
+
+/* ── Countdown ── */
+.countdown {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.time-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.time-num {
+    font-size: 20px;
+    font-weight: 500;
+    color: #111827;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+}
+
+.time-sub {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 2px;
+    font-family: inherit;
+}
+
+.time-sep {
+    font-size: 18px;
+    font-weight: 400;
+    color: #9ca3af;
+    margin-bottom: 12px;
+}
+
+/* ── Refresh Button ── */
+.refresh-btn {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 0.5px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, opacity 0.15s;
+    font-family: inherit;
+}
+
+.refresh-btn:hover:not(:disabled)   { background: #f9fafb; }
+.refresh-btn:active:not(:disabled)  { transform: scale(0.98); }
+.refresh-btn:disabled               { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Spinner ── */
+.spin { display: inline-flex; align-items: center; }
+
+.spinning {
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Pulse dot (live indicator) ── */
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #1D9E75;
+    display: inline-block;
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
+}
+
+/* ── Error Banner ── */
+.error-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #FEF2F2;
+    border: 0.5px solid #FECACA;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #B91C1C;
+    margin-bottom: 1.25rem;
+}
+
+/* ── Loading Skeleton ── */
+.skeleton-steps {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    margin-bottom: 2rem;
+}
+
+.skeleton-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.skel-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+.skel-label {
+    width: 40px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+.skel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+}
+
+.skel-text {
+    height: 13px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+.skel-text.short  { width: 90px; }
+.skel-text.medium { width: 140px; }
+
+.skel-countdown {
+    width: 120px;
+    height: 28px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

@@ -1,0 +1,160 @@
+<template>
+    <div class="tracker-wrap">
+        <div class="tracker-card">
+
+            <!-- ── Card Header ── -->
+            <div class="card-header">
+                <span class="card-title">Shipment Status</span>
+
+                <template lwc:if={isLoading}>
+                    <span class="status-badge loading-badge">
+                        <span class="pulse-dot"></span>Loading…
+                    </span>
+                </template>
+
+                <template lwc:else>
+                    <span class={statusBadgeClass}>
+                        <template lwc:if={showPulseDot}>
+                            <span class="pulse-dot"></span>
+                        </template>
+                        {shipmentData.status}
+                    </span>
+                </template>
+            </div>
+
+            <!-- ── Error Banner ── -->
+            <template lwc:if={hasError}>
+                <div class="error-box" role="alert">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;">
+                        <circle cx="7" cy="7" r="6.5" stroke="#B91C1C" stroke-width="1.2"/>
+                        <path d="M7 4v3.5M7 9.5v.5" stroke="#B91C1C" stroke-width="1.4"
+                              stroke-linecap="round"/>
+                    </svg>
+                    <span>{errorMessage}</span>
+                </div>
+            </template>
+
+            <!-- ── Loading Skeleton ── -->
+            <template lwc:if={isLoading}>
+                <div class="skeleton-steps">
+                    <template for:each={skeletonSteps} for:item="s">
+                        <div key={s} class="skeleton-step">
+                            <div class="skel-dot"></div>
+                            <div class="skel-label"></div>
+                        </div>
+                    </template>
+                </div>
+                <hr class="divider" />
+                <div class="skel-row">
+                    <div class="skel-text short"></div>
+                    <div class="skel-text medium"></div>
+                </div>
+                <hr class="divider" />
+                <div class="skel-row">
+                    <div class="skel-text short"></div>
+                    <div class="skel-countdown"></div>
+                </div>
+            </template>
+
+            <!-- ── Main Content ── -->
+            <template lwc:else>
+
+                <!-- Progress Stepper -->
+                <div class="steps" role="list">
+                    <template for:each={steps} for:item="step">
+                        <div key={step.id} class="step" role="listitem"
+                             aria-label={step.ariaLabel}>
+
+                            <!-- Connector line (before the dot, except first) -->
+                            <template lwc:if={step.showConnectorBefore}>
+                                <div class={step.connectorClass}></div>
+                            </template>
+
+                            <!-- Dot -->
+                            <div class={step.dotClass}>
+                                <template lwc:if={step.isDone}>
+                                    <svg class="dot-check" viewBox="0 0 12 12" fill="none"
+                                         aria-hidden="true">
+                                        <path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8"
+                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </template>
+                                <template lwc:if={step.isActive}>
+                                    <div class="dot-active-ring"></div>
+                                </template>
+                                <template lwc:if={step.isPending}>
+                                    <div class="dot-pending"></div>
+                                </template>
+                            </div>
+
+                            <!-- Label -->
+                            <span class={step.labelClass}>{step.label}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <hr class="divider" />
+
+                <!-- Tracking Number -->
+                <div class="info-row">
+                    <span class="info-label">Tracking number</span>
+                    <span class="info-value">
+                        {shipmentData.trackingNumber}
+                        <a class="ext-link" href={shipmentData.trackingUrl}
+                           target="_blank" rel="noopener noreferrer"
+                           aria-label="Open tracking page">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                                 aria-hidden="true">
+                                <path d="M5 2H2a1 1 0 00-1 1v7a1 1 0 001 1h7a1 1 0 001-1V7M8 1h3m0 0v3M11 1L5.5 6.5"
+                                      stroke="#185FA5" stroke-width="1.3"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Track
+                        </a>
+                    </span>
+                </div>
+
+                <hr class="divider" />
+
+                <!-- ETA + Countdown -->
+                <div class="info-row eta-row">
+                    <div>
+                        <span class="info-label">ETA</span>
+                        <div class="eta-date">{shipmentData.etaFormatted}</div>
+                    </div>
+                    <div class="countdown" aria-label="Time remaining">
+                        <div class="time-block">
+                            <span class="time-num">{countdown.hours}</span>
+                            <span class="time-sub">hrs</span>
+                        </div>
+                        <span class="time-sep" aria-hidden="true">:</span>
+                        <div class="time-block">
+                            <span class="time-num">{countdown.minutes}</span>
+                            <span class="time-sub">min</span>
+                        </div>
+                        <span class="time-sep" aria-hidden="true">:</span>
+                        <div class="time-block">
+                            <span class="time-num">{countdown.seconds}</span>
+                            <span class="time-sub">sec</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ── Refresh Button ── -->
+            <button class="refresh-btn" onclick={handleRefresh}
+                    disabled={isRefreshing}
+                    aria-label="Refresh shipment status">
+                <span class={refreshIconClass} aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M12.5 7A5.5 5.5 0 112.3 3.8M2 1v3h3"
+                              stroke="currentColor" stroke-width="1.4"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                {refreshLabel}
+            </button>
+
+        </div>
+    </div>
+</template>
