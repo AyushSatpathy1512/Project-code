@@ -1,9 +1,5 @@
 public with sharing class ShipmentStatusController {
 
-    /**
-     * Queries the most recent Shipment__c linked to the given Opportunity or Case.
-     * Returns null if no shipment exists (not an exception).
-     */
     @AuraEnabled(cacheable=true)
     public static Shipment__c getShipmentByRecord(Id recordId) {
         if (recordId == null) return null;
@@ -19,11 +15,14 @@ public with sharing class ShipmentStatusController {
                 return rows.isEmpty() ? null : rows[0];
 
             } else if (objType == 'Case') {
-                List<Case> cases = [SELECT Shipment__c FROM Case WHERE Id = :recordId LIMIT 1];
+                List<Case> cases = [
+                    SELECT Shipment__c FROM Case WHERE Id = :recordId LIMIT 1
+                ];
                 if (cases.isEmpty() || cases[0].Shipment__c == null) return null;
                 List<Shipment__c> rows = [
                     SELECT Id, Status__c, Tracking_Number__c, ETA__c, Carrier__c, Last_Updated__c
-                    FROM   Shipment__c WHERE Id = :cases[0].Shipment__c LIMIT 1
+                    FROM   Shipment__c
+                    WHERE  Id = :cases[0].Shipment__c LIMIT 1
                 ];
                 return rows.isEmpty() ? null : rows[0];
             }
@@ -35,21 +34,16 @@ public with sharing class ShipmentStatusController {
         return null;
     }
 
-    /**
-     * Calls ShipFastCalloutHandler (existing class) for the API hit,
-     * then saves Status__c / ETA__c / Last_Updated__c back to Shipment__c.
-     * Callout happens before any DML — satisfies Salesforce governor rules.
-     */
     @AuraEnabled
     public static ShipFastCalloutHandler.ShipFastResponse refreshShipmentStatus(
             Id shipmentId, String trackingNumber) {
         try {
-            // 1. CALLOUT via existing class (no DML before this)
+            // 1. Callout first — no DML before this
             ShipFastCalloutHandler.ShipFastResponse res =
                 ShipFastCalloutHandler.getShipmentStatusFromLwc(trackingNumber);
 
             if (res.isSuccess) {
-                // 2. DML only after callout completes
+                // 2. DML after callout
                 Shipment__c s = new Shipment__c(Id = shipmentId);
                 s.Status__c = res.status;
                 if (String.isNotBlank(res.eta)) {
@@ -75,7 +69,8 @@ public with sharing class ShipmentStatusController {
             Logger.error('ShipmentStatusController.refreshShipmentStatus exception', e)
                   .addTag('ShipFast');
             Logger.saveLog();
-            ShipFastCalloutHandler.ShipFastResponse err = new ShipFastCalloutHandler.ShipFastResponse();
+            ShipFastCalloutHandler.ShipFastResponse err =
+                new ShipFastCalloutHandler.ShipFastResponse();
             err.isSuccess    = false;
             err.errorMessage = e.getMessage();
             err.errorCode    = 'APEX_EXCEPTION';

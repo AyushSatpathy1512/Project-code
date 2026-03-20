@@ -1,24 +1,29 @@
 <template>
     <div class="tracker-wrap">
 
-        <!-- ── Loading ─────────────────────────────────────────────────── -->
+        <!-- Loading -->
         <template if:true={isLoading}>
-            <div class="tracker-card center-content">
+            <div class="tracker-card state-card">
                 <lightning-spinner alternative-text="Loading…" size="small"></lightning-spinner>
-                <p class="muted-msg">Loading shipment…</p>
+                <p class="state-msg">Loading shipment…</p>
             </div>
         </template>
 
-        <!-- ── No shipment ──────────────────────────────────────────────── -->
+        <!-- No shipment found -->
         <template if:true={showNoShipment}>
-            <div class="tracker-card center-content">
-                <lightning-icon icon-name="utility:package" size="medium" class="no-ship-icon">
-                </lightning-icon>
-                <p class="muted-msg">No shipment found for this record.</p>
+            <div class="tracker-card state-card">
+                <p class="state-msg">No shipment found for this record.</p>
             </div>
         </template>
 
-        <!-- ── Main card ────────────────────────────────────────────────── -->
+        <!-- Wire / load error -->
+        <template if:true={showError}>
+            <div class="tracker-card state-card">
+                <p class="state-msg state-error">{errorMessage}</p>
+            </div>
+        </template>
+
+        <!-- ── Main Card ─────────────────────────────────────────────────── -->
         <template if:true={hasShipment}>
             <div class="tracker-card">
 
@@ -33,11 +38,11 @@
                     </span>
                 </div>
 
-                <!-- Progress Steps -->
+                <!-- Steps -->
                 <div class="steps">
                     <template for:each={steps} for:item="step">
                         <div key={step.label} class="step">
-                            <!-- Dot -->
+
                             <div class={step.dotClass}>
                                 <template if:true={step.isDone}>
                                     <svg class="dot-check" viewBox="0 0 12 12" fill="none">
@@ -52,11 +57,11 @@
                                     <div class="dot-pending"></div>
                                 </template>
                             </div>
-                            <!-- Connector (not on last step) -->
+
                             <template if:false={step.isLast}>
                                 <div class={step.connectorClass}></div>
                             </template>
-                            <!-- Label -->
+
                             <span class={step.labelClass}>{step.label}</span>
                         </div>
                     </template>
@@ -67,7 +72,7 @@
                 <!-- Tracking Number -->
                 <div class="info-row">
                     <span class="info-label">Tracking number</span>
-                    <span class="info-value mono">
+                    <span class="info-value">
                         {shipment.Tracking_Number__c}
                         <a class="ext-link" href={trackingLink} target="_blank" rel="noopener noreferrer">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -81,15 +86,6 @@
                 </div>
 
                 <hr class="divider" />
-
-                <!-- Carrier -->
-                <template if:true={shipment.Carrier__c}>
-                    <div class="info-row">
-                        <span class="info-label">Carrier</span>
-                        <span class="info-value">{shipment.Carrier__c}</span>
-                    </div>
-                    <hr class="divider" />
-                </template>
 
                 <!-- ETA + Countdown -->
                 <div class="info-row eta-row">
@@ -115,11 +111,15 @@
                     </div>
                 </div>
 
-                <!-- Error Banner -->
+                <!-- Refresh error (only shown after a failed refresh attempt) -->
                 <template if:true={errorMessage}>
                     <div class="error-banner" role="alert">
-                        <lightning-icon icon-name="utility:error" size="x-small"
-                                        variant="error" class="error-icon"></lightning-icon>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                             style="flex-shrink:0;margin-top:1px;">
+                            <circle cx="7" cy="7" r="6" stroke="#c23934" stroke-width="1.4"/>
+                            <path d="M7 4v3.5M7 9.5v.5" stroke="#c23934" stroke-width="1.4"
+                                  stroke-linecap="round"/>
+                        </svg>
                         <span class="error-text">{errorMessage}</span>
                     </div>
                 </template>
@@ -136,17 +136,6 @@
                     {refreshLabel}
                 </button>
 
-            </div>
-        </template>
-
-        <!-- ── Wire / load error ─────────────────────────────────────────── -->
-        <template if:true={showError}>
-            <div class="tracker-card">
-                <div class="error-banner" role="alert">
-                    <lightning-icon icon-name="utility:error" size="x-small"
-                                    variant="error" class="error-icon"></lightning-icon>
-                    <span class="error-text">{errorMessage}</span>
-                </div>
             </div>
         </template>
 

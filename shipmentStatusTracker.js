@@ -3,7 +3,7 @@ import { refreshApex }          from '@salesforce/apex';
 import getShipmentByRecord       from '@salesforce/apex/ShipmentStatusController.getShipmentByRecord';
 import refreshShipmentStatus     from '@salesforce/apex/ShipmentStatusController.refreshShipmentStatus';
 
-const STEPS          = ['Ordered', 'Picked', 'Shipped', 'In Transit', 'Delivered'];
+const STEPS           = ['Ordered', 'Picked', 'Shipped', 'In Transit', 'Delivered'];
 const ACTIVE_STATUSES = new Set(['Ordered', 'Picked', 'Shipped', 'In Transit']);
 
 export default class ShipmentStatusTracker extends LightningElement {
@@ -23,18 +23,18 @@ export default class ShipmentStatusTracker extends LightningElement {
     _shipment       = null;
     _countdownTimer = null;
 
-    // ── Wire ──────────────────────────────────────────────────────────────────
+    // ── Wire: load shipment ───────────────────────────────────────────────────
     @wire(getShipmentByRecord, { recordId: '$recordId' })
     wiredShipment(result) {
         this._wiredResult = result;
         const { data, error } = result;
         if (data === undefined && !error) return; // not resolved yet
 
-        this.isLoading   = false;
+        this.isLoading    = false;
         this._isWireError = false;
 
         if (data !== undefined) {
-            this._shipment = data;
+            this._shipment    = data;
             this.errorMessage = null;
             if (data) this._startCountdown();
         } else if (error) {
@@ -49,24 +49,28 @@ export default class ShipmentStatusTracker extends LightningElement {
     get hasShipment()    { return !!this._shipment && !this.isLoading; }
     get showNoShipment() { return !this._shipment && !this.isLoading && !this._isWireError; }
     get showError()      { return this._isWireError && !this.isLoading; }
-    get isActive()       { return this._shipment && ACTIVE_STATUSES.has(this._shipment.Status__c); }
+    get isActive()       { return !!this._shipment && ACTIVE_STATUSES.has(this._shipment.Status__c); }
 
     get steps() {
         if (!this._shipment) return [];
         const cur = STEPS.indexOf(this._shipment.Status__c);
+
         return STEPS.map((label, idx) => {
             const isDone    = idx < cur;
             const isActive  = idx === cur;
             const isPending = idx > cur;
+
             return {
                 label,
                 isDone,
                 isActive,
                 isPending,
                 isLast         : idx === STEPS.length - 1,
-                dotClass       : 'step-dot'       + (isDone ? ' done' : isActive ? ' active' : ' pending'),
-                connectorClass : 'step-connector'  + (isDone || isActive ? ' done' : ''),
-                labelClass     : 'step-label'      + (isDone ? ' done' : isActive ? ' active' : '')
+                // dot: done=green fill | active=green border+glow | pending=grey border
+                dotClass       : 'step-dot'      + (isDone ? ' done' : isActive ? ' active' : ' pending'),
+                // connector: only completed steps are green; active step's right connector stays grey
+                connectorClass : 'step-connector' + (isDone ? ' done' : ''),
+                labelClass     : 'step-label'     + (isDone ? ' done' : isActive ? ' active' : '')
             };
         });
     }
@@ -76,6 +80,7 @@ export default class ShipmentStatusTracker extends LightningElement {
         return tn ? `https://track.shipfast.io/${tn}` : '#';
     }
 
+    // ETA__c comes from Salesforce as "YYYY-MM-DD" string
     get formattedETA() {
         const raw = this._shipment?.ETA__c;
         if (!raw) return 'N/A';
@@ -84,7 +89,7 @@ export default class ShipmentStatusTracker extends LightningElement {
             { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
-    get refreshLabel()    { return this.isRefreshing ? 'Refreshing…' : 'Refresh Status'; }
+    get refreshLabel()    { return this.isRefreshing ? 'Refreshing...' : 'Refresh Status'; }
     get refreshIconClass(){ return this.isRefreshing ? 'spin spinning' : 'spin'; }
 
     // ── Countdown ─────────────────────────────────────────────────────────────
@@ -98,14 +103,14 @@ export default class ShipmentStatusTracker extends LightningElement {
         const raw = this._shipment?.ETA__c;
         if (!raw) return;
         const [y, m, d] = raw.split('-').map(Number);
-        const eta  = new Date(y, m - 1, d, 18, 0, 0); // 6 PM delivery window
+        const eta  = new Date(y, m - 1, d, 18, 0, 0); // 6 PM on ETA date
         const diff = Math.max(0, eta - Date.now());
         this.cdHours   = String(Math.floor(diff / 3_600_000)).padStart(2, '0');
         this.cdMinutes = String(Math.floor((diff % 3_600_000) / 60_000)).padStart(2, '0');
         this.cdSeconds = String(Math.floor((diff % 60_000) / 1_000)).padStart(2, '0');
     }
 
-    // ── Refresh handler ───────────────────────────────────────────────────────
+    // ── Refresh button ────────────────────────────────────────────────────────
     async handleRefresh() {
         if (!this._shipment?.Tracking_Number__c || this.isRefreshing) return;
         this.isRefreshing = true;
@@ -116,7 +121,8 @@ export default class ShipmentStatusTracker extends LightningElement {
                 trackingNumber: this._shipment.Tracking_Number__c
             });
             if (res?.isSuccess) {
-                await refreshApex(this._wiredResult); // re-query updated Shipment__c
+                // Bust the @wire cache so the card re-renders with updated status
+                await refreshApex(this._wiredResult);
             } else {
                 this.errorMessage = res?.errorMessage || 'Failed to refresh shipment status.';
             }
@@ -129,8 +135,10 @@ export default class ShipmentStatusTracker extends LightningElement {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     _extractMsg(err) {
-        return err?.body?.message ?? err?.body?.pageErrors?.[0]?.message
-            ?? err?.message ?? 'An unexpected error occurred.';
+        return err?.body?.message
+            ?? err?.body?.pageErrors?.[0]?.message
+            ?? err?.message
+            ?? 'An unexpected error occurred.';
     }
 
     disconnectedCallback() {
