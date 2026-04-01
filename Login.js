@@ -21,7 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 const Blob = ({ style }) => <View style={[styles.blob, style]} />;
 
 /** Icon + TextInput row */
-const InputField = ({ icon, placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, rightElement }) => (
+const InputField = ({ icon, placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize }) => (
   <View style={styles.inputWrapper}>
     <Text style={styles.inputIcon}>{icon}</Text>
     <TextInput
@@ -35,7 +35,6 @@ const InputField = ({ icon, placeholder, value, onChangeText, secureTextEntry, k
       autoCapitalize={autoCapitalize || 'none'}
       autoCorrect={false}
     />
-    {rightElement}
   </View>
 );
 
@@ -69,11 +68,6 @@ const Login = ({ navigation }) => {
       Alert.alert('Success 🎉', 'You have logged in successfully!');
       // navigation.navigate('Home'); // uncomment when Home screen exists
     }, 1500);
-  };
-
-  // ── Forgot password handler ──────────────────
-  const handleForgotPassword = () => {
-    Alert.alert('Forgot Password', 'Password reset flow coming soon.');
   };
 
   // ────────────────────────────────────────────
@@ -123,11 +117,6 @@ const Login = ({ navigation }) => {
               setErrors(prev => ({ ...prev, password: null }));
             }}
             secureTextEntry
-            rightElement={
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text style={styles.forgotText}>Forgot password?</Text>
-              </TouchableOpacity>
-            }
           />
           {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
@@ -275,12 +264,6 @@ const styles = StyleSheet.create({
     color: '#2D2D5E',
     padding: 0, // remove default Android padding
   },
-  forgotText: {
-    fontSize: 12,
-    color: '#9E9EB8',
-    marginLeft: 8,
-  },
-
   // ── Validation ───────────────────────────────
   errorText: {
     color: '#E05C5C',
