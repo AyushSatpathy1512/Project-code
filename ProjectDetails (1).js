@@ -207,6 +207,21 @@ const SideNavBar = ({ navigation, activeScreen }) => {
               </TouchableOpacity>
             );
           })}
+ 
+          {/* ── Logout ── */}
+          <View style={{ flex: 1 }} />
+          <View style={styles.navLogoutDivider} />
+          <TouchableOpacity
+            style={styles.navLogoutBtn}
+            activeOpacity={0.75}
+            onPress={() => {
+              close();
+              if (navigation) navigation.replace('Login');
+            }}
+          >
+            <Text style={styles.navLogoutIcon}>🚪</Text>
+            <Text style={styles.navLogoutLabel}>Logout</Text>
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </>
@@ -725,6 +740,12 @@ const styles = StyleSheet.create({
   // ─────────────────────────────────────────
   //  Side Nav
   // ─────────────────────────────────────────
+  // ── Logout ──────────────────────────────
+  navLogoutDivider: { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
+  navLogoutBtn:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 12, backgroundColor: '#fff0f0' },
+  navLogoutIcon:    { fontSize: 18, marginRight: 12 },
+  navLogoutLabel:   { fontSize: 14, fontWeight: '600', color: '#e05c5c' },
+ 
   navBackdrop:        { ...StyleSheet.absoluteFillObject, backgroundColor: '#1a0a40', zIndex: 10 },
   navDrawer:          { position: 'absolute', top: 0, right: 0, bottom: 0, width: NAV_WIDTH, flexDirection: 'row', zIndex: 20 },
   navTab:             { width: TAB_WIDTH, alignSelf: 'center', height: 72, backgroundColor: '#4a3fa0', borderTopLeftRadius: 12, borderBottomLeftRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#2d2150', shadowOffset: { width: -2, height: 0 }, shadowOpacity: 0.2, shadowRadius: 6 },
