@@ -10,14 +10,14 @@ import {
   Animated,
   TouchableWithoutFeedback,
 } from 'react-native';
-
+ 
 const NAV_WIDTH = 200;
 const TAB_WIDTH = 28;
-
+ 
 // ─────────────────────────────────────────────
 //  Project Data  (sourced from resume)
 // ─────────────────────────────────────────────
-
+ 
 const CATEGORIES = [
   {
     id: 'internship',
@@ -136,18 +136,18 @@ const CATEGORIES = [
     ],
   },
 ];
-
+ 
 // ─────────────────────────────────────────────
 //  Reusable Sub-Components
 // ─────────────────────────────────────────────
-
+ 
 /** Tech tag pill */
 const TechTag = ({ label, bg, color }) => (
   <View style={[styles.techTag, { backgroundColor: bg, borderColor: color + '55' }]}>
     <Text style={[styles.techTagText, { color }]}>{label}</Text>
   </View>
 );
-
+ 
 /** Single bullet point row */
 const Bullet = ({ text }) => (
   <View style={styles.bulletRow}>
@@ -155,12 +155,12 @@ const Bullet = ({ text }) => (
     <Text style={styles.bulletText}>{text}</Text>
   </View>
 );
-
+ 
 /** Expandable project card */
 const ProjectCard = ({ project, category }) => {
   const [expanded, setExpanded] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
-
+ 
   const toggleExpand = () => {
     Animated.spring(anim, {
       toValue: expanded ? 0 : 1,
@@ -170,12 +170,12 @@ const ProjectCard = ({ project, category }) => {
     }).start();
     setExpanded(e => !e);
   };
-
+ 
   const arrowRotate = anim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
   });
-
+ 
   return (
     <View style={[styles.projectCard, { borderLeftColor: category.borderColor }]}>
       {/* ── Card Header Row ── */}
@@ -195,17 +195,17 @@ const ProjectCard = ({ project, category }) => {
           </Animated.Text>
         </TouchableOpacity>
       </View>
-
+ 
       {/* ── Tech Tags ── */}
       <View style={styles.techTagsRow}>
         {project.tech.map((t, i) => (
           <TechTag key={i} label={t} bg={category.tagBg} color={category.tagText} />
         ))}
       </View>
-
+ 
       {/* ── Description (always visible) ── */}
       <Text style={styles.projectDesc}>{project.description}</Text>
-
+ 
       {/* ── Expandable Bullet Details ── */}
       {expanded && (
         <View style={styles.bulletsWrap}>
@@ -216,7 +216,7 @@ const ProjectCard = ({ project, category }) => {
           ))}
         </View>
       )}
-
+ 
       {/* ── Expand / Collapse label ── */}
       <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.expandLabelBtn}>
         <Text style={[styles.expandLabel, { color: category.borderColor }]}>
@@ -226,7 +226,7 @@ const ProjectCard = ({ project, category }) => {
     </View>
   );
 };
-
+ 
 /** Category section with header + its projects */
 const CategorySection = ({ category }) => (
   <View style={styles.categorySection}>
@@ -242,28 +242,27 @@ const CategorySection = ({ category }) => (
         </Text>
       </View>
     </View>
-
+ 
     {/* Project Cards */}
     {category.projects.map((project, i) => (
       <ProjectCard key={i} project={project} category={category} />
     ))}
   </View>
 );
-
+ 
 // ─────────────────────────────────────────────
 //  Right-Side Navigation Drawer (same as Home)
 // ─────────────────────────────────────────────
-
+ 
 const NAV_ITEMS = [
   { label: 'Home',     icon: '🏠', screen: 'Home'     },
   { label: 'Projects', icon: '📁', screen: 'Project'  },
-  { label: 'Settings', icon: '⚙️', screen: 'Settings' },
 ];
-
+ 
 const SideNavBar = ({ navigation, activeScreen }) => {
   const [isOpen, setIsOpen] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
-
+ 
   const toggle = () => {
     Animated.spring(anim, {
       toValue: isOpen ? 0 : 1,
@@ -273,7 +272,7 @@ const SideNavBar = ({ navigation, activeScreen }) => {
     }).start();
     setIsOpen(o => !o);
   };
-
+ 
   const close = () => {
     if (!isOpen) return;
     Animated.spring(anim, {
@@ -284,17 +283,17 @@ const SideNavBar = ({ navigation, activeScreen }) => {
     }).start();
     setIsOpen(false);
   };
-
+ 
   const translateX = anim.interpolate({
     inputRange:  [0, 1],
     outputRange: [NAV_WIDTH - TAB_WIDTH, 0],
   });
-
+ 
   const backdropOpacity = anim.interpolate({
     inputRange:  [0, 1],
     outputRange: [0, 0.3],
   });
-
+ 
   return (
     <>
       <Animated.View
@@ -305,7 +304,7 @@ const SideNavBar = ({ navigation, activeScreen }) => {
           <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
       </Animated.View>
-
+ 
       <Animated.View style={[styles.navDrawer, { transform: [{ translateX }] }]}>
         {/* Trigger tab */}
         <TouchableOpacity style={styles.navTab} onPress={toggle} activeOpacity={0.8}>
@@ -319,7 +318,7 @@ const SideNavBar = ({ navigation, activeScreen }) => {
             </View>
           )}
         </TouchableOpacity>
-
+ 
         {/* Menu */}
         <View style={styles.navContent}>
           <Text style={styles.navHeading}>Menu</Text>
@@ -348,15 +347,15 @@ const SideNavBar = ({ navigation, activeScreen }) => {
     </>
   );
 };
-
+ 
 // ─────────────────────────────────────────────
 //  Main Projects Screen
 // ─────────────────────────────────────────────
-
+ 
 const ProjectDetails = ({ navigation }) => (
   <SafeAreaView style={styles.safeArea}>
     <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-
+ 
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
@@ -372,14 +371,14 @@ const ProjectDetails = ({ navigation }) => (
         >
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
-
+ 
         {/* Page identity */}
         <View style={styles.pageIconWrap}>
           <Text style={styles.pageIcon}>📁</Text>
         </View>
         <Text style={styles.pageTitle}>Projects</Text>
         <Text style={styles.pageSubtitle}>A showcase of work across internships,{'\n'}training, and personal builds</Text>
-
+ 
         {/* Stats pills */}
         <View style={styles.statsRow}>
           <View style={styles.statPill}>
@@ -403,10 +402,10 @@ const ProjectDetails = ({ navigation }) => (
           </View>
         </View>
       </View>
-
+ 
       {/* ── Divider ── */}
       <View style={styles.divider} />
-
+ 
       {/* ── Category Sections ── */}
       <View style={styles.body}>
         {CATEGORIES.map(cat => (
@@ -414,22 +413,22 @@ const ProjectDetails = ({ navigation }) => (
         ))}
       </View>
     </ScrollView>
-
+ 
     {/* Right-side nav (activeScreen = Projects) */}
     <SideNavBar navigation={navigation} activeScreen="Project" />
   </SafeAreaView>
 );
-
+ 
 // ─────────────────────────────────────────────
 //  Styles
 // ─────────────────────────────────────────────
-
+ 
 const styles = StyleSheet.create({
-
+ 
   safeArea:      { flex: 1, backgroundColor: '#eceaf8' },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 48 },
-
+ 
   // ── Hero / Page Header ──────────────────────
   hero: {
     alignItems: 'center',
@@ -448,7 +447,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.09, shadowRadius: 6,
   },
   backArrow: { fontSize: 22, color: '#888', lineHeight: 26, marginTop: -2 },
-
+ 
   pageIconWrap: {
     width: 72, height: 72, borderRadius: 36,
     backgroundColor: '#fff',
@@ -461,7 +460,7 @@ const styles = StyleSheet.create({
   pageIcon:     { fontSize: 32 },
   pageTitle:    { fontSize: 26, fontWeight: '700', color: '#2d2150', marginBottom: 6, letterSpacing: 0.2 },
   pageSubtitle: { fontSize: 13, color: '#8a82aa', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
-
+ 
   // Stats row
   statsRow: {
     flexDirection: 'row',
@@ -477,12 +476,12 @@ const styles = StyleSheet.create({
   statPillDivider: { width: 1, backgroundColor: '#ebe7fa', marginVertical: 2 },
   statNum:         { fontSize: 18, fontWeight: '700', color: '#2d2150' },
   statLabel:       { fontSize: 10, color: '#9e9ebb', marginTop: 2, fontWeight: '500' },
-
+ 
   divider: { height: 1, backgroundColor: 'rgba(160,140,220,0.18)', marginHorizontal: 20 },
-
+ 
   // ── Body ────────────────────────────────────
   body: { paddingHorizontal: 16, paddingTop: 20 },
-
+ 
   // ── Category Section ────────────────────────
   categorySection: { marginBottom: 28 },
   categoryHeader: {
@@ -504,7 +503,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   categoryCountText: { fontSize: 12, fontWeight: '700' },
-
+ 
   // ── Project Card ────────────────────────────
   projectCard: {
     backgroundColor: '#fff',
@@ -530,10 +529,10 @@ const styles = StyleSheet.create({
   projectTitleWrap: { flex: 1 },
   projectName:     { fontSize: 14, fontWeight: '700', color: '#2d2150', marginBottom: 2 },
   projectSubtitle: { fontSize: 11.5, color: '#9b94b8' },
-
+ 
   expandBtn: { padding: 4 },
   expandArrow: { fontSize: 18, color: '#b4aed0' },
-
+ 
   // Tech tags
   techTagsRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   techTag: {
@@ -545,7 +544,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   techTagText: { fontSize: 10.5, fontWeight: '600' },
-
+ 
   // Description
   projectDesc: {
     fontSize: 12.5,
@@ -553,7 +552,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginBottom: 8,
   },
-
+ 
   // Bullets (expanded)
   bulletsWrap:    { marginTop: 4 },
   bulletsDivider: { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
@@ -565,15 +564,15 @@ const styles = StyleSheet.create({
   bulletRow:  { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
   bulletDot:  { width: 5, height: 5, borderRadius: 3, backgroundColor: '#c4bde0', marginTop: 6, marginRight: 8 },
   bulletText: { flex: 1, fontSize: 12, color: '#4e4670', lineHeight: 18 },
-
+ 
   // Expand label
   expandLabelBtn: { marginTop: 6, alignSelf: 'flex-start' },
   expandLabel:    { fontSize: 11.5, fontWeight: '600' },
-
+ 
   // ─────────────────────────────────────────
   //  Side Nav  (identical to HomeScreen)
   // ─────────────────────────────────────────
-
+ 
   navBackdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#1a0a40',
@@ -601,7 +600,7 @@ const styles = StyleSheet.create({
   dotsWrap: { alignItems: 'center', gap: 4 },
   dotLine:  { width: 12, height: 2.5, backgroundColor: '#fff', borderRadius: 2 },
   navTabArrow: { fontSize: 24, color: '#fff', fontWeight: '700' },
-
+ 
   navContent: {
     flex: 1,
     backgroundColor: '#fff',
@@ -631,5 +630,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#4a3fa0',
   },
 });
-
-
