@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
  
 const NAV_WIDTH = 200;
 const TAB_WIDTH = 28;
@@ -144,14 +145,15 @@ const HomeScreen = ({ navigation }) => {
   // ══════════════════════════════════════════
   //  SECTION 1 — Profile
   // ══════════════════════════════════════════
-  const [profile, setProfile] = useState({
+  const DEFAULT_PROFILE = {
     name:    'Ayush Satpathy',
     role:    'Software Engineer Intern',
     company: 'PwC',
     bio:     'Highly motivated CS undergrad skilled in React Native, React.js, JavaScript, and Salesforce. Passionate about building intuitive, high-performance apps and delivering quality code in line with industry standards.',
-  });
+  };
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
   const [profileModal, setProfileModal] = useState(false);
-  const [draftProfile, setDraftProfile] = useState({ ...profile });
+  const [draftProfile, setDraftProfile] = useState({ ...DEFAULT_PROFILE });
  
   const openProfileEdit = () => { setDraftProfile({ ...profile }); setProfileModal(true); };
   const saveProfile = () => {
@@ -301,6 +303,48 @@ const HomeScreen = ({ navigation }) => {
         onPress: () => setAchievements(prev => prev.filter(a => a.title !== title)) },
     ]);
   };
+ 
+  // ═════════════════════════════════════════
+  //  AsyncStorage — LOAD on mount
+  // ═════════════════════════════════════════
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [p, sk, ex, ac] = await Promise.all([
+          AsyncStorage.getItem('@portfolio_profile'),
+          AsyncStorage.getItem('@portfolio_skills'),
+          AsyncStorage.getItem('@portfolio_experience'),
+          AsyncStorage.getItem('@portfolio_achievements'),
+        ]);
+        if (p)  { setProfile(JSON.parse(p)); setDraftProfile(JSON.parse(p)); }
+        if (sk) setSkills(JSON.parse(sk));
+        if (ex) setExperience(JSON.parse(ex));
+        if (ac) setAchievements(JSON.parse(ac));
+      } catch (e) {
+        console.log('Load error:', e);
+      }
+    };
+    loadData();
+  }, []); // runs once on mount
+ 
+  // ═════════════════════════════════════════
+  //  AsyncStorage — SAVE whenever data changes
+  // ═════════════════════════════════════════
+  useEffect(() => {
+    AsyncStorage.setItem('@portfolio_profile', JSON.stringify(profile)).catch(() => {});
+  }, [profile]);
+ 
+  useEffect(() => {
+    AsyncStorage.setItem('@portfolio_skills', JSON.stringify(skills)).catch(() => {});
+  }, [skills]);
+ 
+  useEffect(() => {
+    AsyncStorage.setItem('@portfolio_experience', JSON.stringify(experience)).catch(() => {});
+  }, [experience]);
+ 
+  useEffect(() => {
+    AsyncStorage.setItem('@portfolio_achievements', JSON.stringify(achievements)).catch(() => {});
+  }, [achievements]);
  
   // ─────────────────────────────────────────
   //  RENDER
