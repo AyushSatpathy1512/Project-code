@@ -26,6 +26,16 @@ const SKILL_COLORS = [
   '#ff9800','#009688',
 ];
  
+// Preset logo bg/text colour pairs for experience entries
+const EXP_COLOR_PAIRS = [
+  { bgColor: '#ede9fc', textColor: '#7c6ec7' },
+  { bgColor: '#e6eef9', textColor: '#4a7fc1' },
+  { bgColor: '#edf9f3', textColor: '#2e9b6b' },
+  { bgColor: '#fdf1dc', textColor: '#c98a10' },
+  { bgColor: '#fce8e8', textColor: '#e05c5c' },
+  { bgColor: '#e8f5e9', textColor: '#388e3c' },
+];
+ 
 // ─────────────────────────────────────────────
 //  Side Nav
 // ─────────────────────────────────────────────
@@ -55,8 +65,8 @@ const SideNavBar = ({ navigation, activeScreen = 'Home' }) => {
     setIsOpen(false);
   };
  
-  const translateX    = anim.interpolate({ inputRange: [0,1], outputRange: [NAV_WIDTH - TAB_WIDTH, 0] });
-  const backdropOpacity = anim.interpolate({ inputRange: [0,1], outputRange: [0, 0.3] });
+  const translateX      = anim.interpolate({ inputRange: [0, 1], outputRange: [NAV_WIDTH - TAB_WIDTH, 0] });
+  const backdropOpacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.3] });
  
   return (
     <>
@@ -105,10 +115,7 @@ const SideNavBar = ({ navigation, activeScreen = 'Home' }) => {
           <TouchableOpacity
             style={styles.navLogoutBtn}
             activeOpacity={0.75}
-            onPress={() => {
-              close();
-              if (navigation) navigation.replace('Login');
-            }}
+            onPress={() => { close(); if (navigation) navigation.replace('Login'); }}
           >
             <Text style={styles.navLogoutIcon}>🚪</Text>
             <Text style={styles.navLogoutLabel}>Logout</Text>
@@ -120,7 +127,7 @@ const SideNavBar = ({ navigation, activeScreen = 'Home' }) => {
 };
  
 // ─────────────────────────────────────────────
-//  Pencil Edit Button
+//  Pencil Edit Button  (card header)
 // ─────────────────────────────────────────────
 const EditBtn = ({ onPress }) => (
   <TouchableOpacity style={styles.editBtn} onPress={onPress} activeOpacity={0.7}>
@@ -134,7 +141,9 @@ const EditBtn = ({ onPress }) => (
  
 const HomeScreen = ({ navigation }) => {
  
-  // ── Section 1: Profile state ──────────────────
+  // ══════════════════════════════════════════
+  //  SECTION 1 — Profile
+  // ══════════════════════════════════════════
   const [profile, setProfile] = useState({
     name:    'Ayush Satpathy',
     role:    'Software Engineer Intern',
@@ -144,17 +153,16 @@ const HomeScreen = ({ navigation }) => {
   const [profileModal, setProfileModal] = useState(false);
   const [draftProfile, setDraftProfile] = useState({ ...profile });
  
-  const openProfileEdit = () => {
-    setDraftProfile({ ...profile });
-    setProfileModal(true);
-  };
+  const openProfileEdit = () => { setDraftProfile({ ...profile }); setProfileModal(true); };
   const saveProfile = () => {
     if (!draftProfile.name.trim()) { Alert.alert('Name cannot be empty'); return; }
     setProfile({ ...draftProfile });
     setProfileModal(false);
   };
  
-  // ── Section 2: Skills state ───────────────────
+  // ══════════════════════════════════════════
+  //  SECTION 2 — Skills
+  // ══════════════════════════════════════════
   const [skills, setSkills] = useState([
     { label: 'React Native', dotColor: '#3b82f6' },
     { label: 'React.js',     dotColor: '#61dafb' },
@@ -181,15 +189,92 @@ const HomeScreen = ({ navigation }) => {
     setNewSkillColor(SKILL_COLORS[0]);
   };
  
-  const deleteSkill = (label) => {
+  const deleteSkill = label => {
     Alert.alert('Remove Skill', `Remove "${label}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () =>
-          setSkills(prev => prev.filter(s => s.label !== label)) },
+      { text: 'Remove', style: 'destructive',
+        onPress: () => setSkills(prev => prev.filter(s => s.label !== label)) },
     ]);
   };
  
-  // ── Section 3: Achievements state ────────────
+  // ══════════════════════════════════════════
+  //  SECTION 3 — Experience  (FULL CRUD)
+  // ══════════════════════════════════════════
+  const [experience, setExperience] = useState([
+    { initial: 'P', bgColor: '#ede9fc', textColor: '#7c6ec7',
+      role: 'Software Engineer Intern', company: 'PricewaterhouseCoopers (PwC)', year: '2025 – Present' },
+    { initial: 'B', bgColor: '#e6eef9', textColor: '#4a7fc1',
+      role: 'SDE Intern', company: 'Bluestock Fintech', year: 'Jul – Aug 2024' },
+  ]);
+ 
+  // Modal visibility + which entry is being edited (null = add mode)
+  const [expModal, setExpModal]     = useState(false);
+  const [expEditIdx, setExpEditIdx] = useState(null);
+ 
+  // Draft state for the experience modal
+  const blankExp = () => ({ initial: '', bgColor: '#e6eef9', textColor: '#4a7fc1', role: '', company: '', year: '' });
+  const [draftExp, setDraftExp]     = useState(blankExp());
+  const [expColorIdx, setExpColorIdx] = useState(1);
+ 
+  // Open in ADD mode
+  const openAddExp = () => {
+    setDraftExp(blankExp());
+    setExpColorIdx(1);
+    setExpEditIdx(null);
+    setExpModal(true);
+  };
+ 
+  // Open in EDIT mode — prefill draft with existing entry
+  const openEditExp = idx => {
+    const entry = experience[idx];
+    setDraftExp({ ...entry });
+    // Find matching colour pair index for the colour picker
+    const pairIdx = EXP_COLOR_PAIRS.findIndex(
+      p => p.bgColor === entry.bgColor && p.textColor === entry.textColor
+    );
+    setExpColorIdx(pairIdx >= 0 ? pairIdx : 0);
+    setExpEditIdx(idx);
+    setExpModal(true);
+  };
+ 
+  // Save (Create or Update)
+  const saveExp = () => {
+    if (!draftExp.role.trim())    { Alert.alert('Role cannot be empty'); return; }
+    if (!draftExp.company.trim()) { Alert.alert('Company cannot be empty'); return; }
+    if (!draftExp.year.trim())    { Alert.alert('Year / Period cannot be empty'); return; }
+    // Auto-generate initial from company if left blank
+    const initial = draftExp.initial.trim()
+      ? draftExp.initial.trim().slice(0, 2).toUpperCase()
+      : draftExp.company.trim().charAt(0).toUpperCase();
+    const entry = {
+      ...draftExp,
+      initial,
+      bgColor:   EXP_COLOR_PAIRS[expColorIdx].bgColor,
+      textColor: EXP_COLOR_PAIRS[expColorIdx].textColor,
+    };
+    if (expEditIdx === null) {
+      // CREATE
+      setExperience(prev => [...prev, entry]);
+    } else {
+      // UPDATE
+      setExperience(prev => prev.map((e, i) => i === expEditIdx ? entry : e));
+    }
+    setExpModal(false);
+  };
+ 
+  // Delete
+  const deleteExp = idx => {
+    const e = experience[idx];
+    Alert.alert('Remove Experience', `Remove "${e.role} at ${e.company}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive',
+        onPress: () => setExperience(prev => prev.filter((_, i) => i !== idx)) },
+    ]);
+  };
+ 
+  // ══════════════════════════════════════════
+  //  SECTION 4 — Achievements
+  // ══════════════════════════════════════════
   const [achievements, setAchievements] = useState([
     { title: 'Salesforce Trailhead Ranger Rank',       subtitle: '100+ badges · 60,000+ points' },
     { title: 'Salesforce Service Cloud Consultant',    subtitle: 'Trailhead (Aug 2025)'          },
@@ -209,27 +294,17 @@ const HomeScreen = ({ navigation }) => {
     setNewAchSub('');
   };
  
-  const deleteAchievement = (title) => {
+  const deleteAchievement = title => {
     Alert.alert('Remove Entry', `Remove "${title}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () =>
-          setAchievements(prev => prev.filter(a => a.title !== title)) },
+      { text: 'Remove', style: 'destructive',
+        onPress: () => setAchievements(prev => prev.filter(a => a.title !== title)) },
     ]);
   };
  
-  // ─────────────────────────────────────────────
-  //  Experience (static — no CRUD required)
-  // ─────────────────────────────────────────────
-  const experience = [
-    { initial: 'P', bgColor: '#ede9fc', textColor: '#7c6ec7',
-      role: 'Software Engineer Intern', company: 'PricewaterhouseCoopers (PwC)', year: '2025 – Present' },
-    { initial: 'B', bgColor: '#e6eef9', textColor: '#4a7fc1',
-      role: 'SDE Intern', company: 'Bluestock Fintech', year: 'Jul – Aug 2024' },
-  ];
- 
-  // ─────────────────────────────────────────────
-  //  Render
-  // ─────────────────────────────────────────────
+  // ─────────────────────────────────────────
+  //  RENDER
+  // ─────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
@@ -237,11 +312,10 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
  
-        {/* ══════════════════════════════════════
+        {/* ══════════════════════════
             SECTION 1 — Profile Hero
-        ══════════════════════════════════════ */}
+        ══════════════════════════ */}
         <View style={styles.hero}>
-          {/* Pencil for section 1 */}
           <EditBtn onPress={openProfileEdit} />
  
           <View style={styles.avatarWrap}>
@@ -268,12 +342,11 @@ const HomeScreen = ({ navigation }) => {
  
         <View style={styles.divider} />
  
-        {/* ══════════════════════════════════════
-            Cards area
-        ══════════════════════════════════════ */}
         <View style={styles.cards}>
  
-          {/* ── SECTION 2 — Skills ── */}
+          {/* ══════════════════════
+              SECTION 2 — Skills
+          ══════════════════════ */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={[styles.cardIcon, { backgroundColor: '#ede9fc' }]}>
@@ -292,29 +365,59 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
  
-          {/* ── Experience (no edit) ── */}
+          {/* ══════════════════════════════════════
+              SECTION 3 — Experience  (FULL CRUD)
+          ══════════════════════════════════════ */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={[styles.cardIcon, { backgroundColor: '#e6eef9' }]}>
                 <Text style={{ color: '#4a7fc1', fontSize: 14 }}>💼</Text>
               </View>
               <Text style={styles.cardTitle}>Experience</Text>
+              {/* ✏️ pencil opens ADD mode */}
+              <EditBtn onPress={openAddExp} />
             </View>
+ 
             {experience.map((e, i) => (
               <View key={i} style={styles.expItem}>
+                {/* Logo initial */}
                 <View style={[styles.expLogo, { backgroundColor: e.bgColor }]}>
                   <Text style={[styles.expInitial, { color: e.textColor }]}>{e.initial}</Text>
                 </View>
+ 
+                {/* Role + company */}
                 <View style={styles.expInfo}>
                   <Text style={styles.expRole}>{e.role}</Text>
                   <Text style={styles.expCo}>{e.company}</Text>
                 </View>
+ 
+                {/* Year */}
                 <Text style={styles.expYr}>{e.year}</Text>
+ 
+                {/* ✏️ edit this entry */}
+                <TouchableOpacity
+                  style={styles.expActionBtn}
+                  onPress={() => openEditExp(i)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.expActionIcon}>✏️</Text>
+                </TouchableOpacity>
+ 
+                {/* 🗑️ delete this entry */}
+                <TouchableOpacity
+                  style={[styles.expActionBtn, styles.expActionDelete]}
+                  onPress={() => deleteExp(i)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.expActionIcon}>🗑️</Text>
+                </TouchableOpacity>
               </View>
             ))}
           </View>
  
-          {/* ── SECTION 3 — Achievements ── */}
+          {/* ══════════════════════════════════
+              SECTION 4 — Achievements
+          ══════════════════════════════════ */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={[styles.cardIcon, { backgroundColor: '#fdf1dc' }]}>
@@ -340,11 +443,13 @@ const HomeScreen = ({ navigation }) => {
       {/* ── Side Nav ── */}
       <SideNavBar navigation={navigation} activeScreen="Home" />
  
-      {/* ══════════════════════════════════════════
+      {/* ════════════════════════════════════════
           MODAL 1 — Edit Profile
-      ══════════════════════════════════════════ */}
-      <Modal visible={profileModal} transparent animationType="fade" onRequestClose={() => setProfileModal(false)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      ════════════════════════════════════════ */}
+      <Modal visible={profileModal} transparent animationType="fade"
+        onRequestClose={() => setProfileModal(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableWithoutFeedback onPress={() => setProfileModal(false)}>
             <View style={StyleSheet.absoluteFill} />
           </TouchableWithoutFeedback>
@@ -386,11 +491,13 @@ const HomeScreen = ({ navigation }) => {
         </KeyboardAvoidingView>
       </Modal>
  
-      {/* ══════════════════════════════════════════
+      {/* ════════════════════════════════════════
           MODAL 2 — Edit Skills
-      ══════════════════════════════════════════ */}
-      <Modal visible={skillModal} transparent animationType="fade" onRequestClose={() => setSkillModal(false)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      ════════════════════════════════════════ */}
+      <Modal visible={skillModal} transparent animationType="fade"
+        onRequestClose={() => setSkillModal(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableWithoutFeedback onPress={() => setSkillModal(false)}>
             <View style={StyleSheet.absoluteFill} />
           </TouchableWithoutFeedback>
@@ -398,7 +505,6 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Edit Skills</Text>
  
-            {/* Existing skills with delete */}
             <ScrollView style={styles.modalListScroll} nestedScrollEnabled>
               {skills.map((s, i) => (
                 <View key={i} style={styles.modalListRow}>
@@ -411,23 +517,19 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </ScrollView>
  
-            {/* Add new skill */}
             <View style={styles.modalDivider} />
             <Text style={styles.modalLabel}>Add New Skill</Text>
             <TextInput style={styles.modalInput} value={newSkillLabel}
               onChangeText={setNewSkillLabel} placeholder="Skill name"
               placeholderTextColor="#c0bcd8" />
  
-            {/* Color picker row */}
             <Text style={styles.modalLabel}>Pick a colour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
               style={styles.colorPickerRow}>
               {SKILL_COLORS.map(c => (
                 <TouchableOpacity key={c} onPress={() => setNewSkillColor(c)}
-                  style={[styles.colorSwatch,
-                    { backgroundColor: c },
-                    newSkillColor === c && styles.colorSwatchActive,
-                  ]} />
+                  style={[styles.colorSwatch, { backgroundColor: c },
+                    newSkillColor === c && styles.colorSwatchActive]} />
               ))}
             </ScrollView>
  
@@ -443,11 +545,92 @@ const HomeScreen = ({ navigation }) => {
         </KeyboardAvoidingView>
       </Modal>
  
-      {/* ══════════════════════════════════════════
-          MODAL 3 — Edit Achievements
-      ══════════════════════════════════════════ */}
-      <Modal visible={achModal} transparent animationType="fade" onRequestClose={() => setAchModal(false)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      {/* ════════════════════════════════════════
+          MODAL 3 — Add / Edit Experience
+      ════════════════════════════════════════ */}
+      <Modal visible={expModal} transparent animationType="fade"
+        onRequestClose={() => setExpModal(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <TouchableWithoutFeedback onPress={() => setExpModal(false)}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+ 
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              {expEditIdx === null ? 'Add Experience' : 'Edit Experience'}
+            </Text>
+ 
+            <Text style={styles.modalLabel}>Role / Position *</Text>
+            <TextInput style={styles.modalInput} value={draftExp.role}
+              onChangeText={t => setDraftExp(p => ({ ...p, role: t }))}
+              placeholder="e.g. Software Engineer Intern"
+              placeholderTextColor="#c0bcd8" />
+ 
+            <Text style={styles.modalLabel}>Company *</Text>
+            <TextInput style={styles.modalInput} value={draftExp.company}
+              onChangeText={t => setDraftExp(p => ({ ...p, company: t }))}
+              placeholder="e.g. PricewaterhouseCoopers"
+              placeholderTextColor="#c0bcd8" />
+ 
+            <Text style={styles.modalLabel}>Year / Period *</Text>
+            <TextInput style={styles.modalInput} value={draftExp.year}
+              onChangeText={t => setDraftExp(p => ({ ...p, year: t }))}
+              placeholder="e.g. 2025 – Present"
+              placeholderTextColor="#c0bcd8" />
+ 
+            <Text style={styles.modalLabel}>
+              Logo Initial (1–2 chars, auto from company if blank)
+            </Text>
+            <TextInput style={styles.modalInput} value={draftExp.initial}
+              onChangeText={t => setDraftExp(p => ({ ...p, initial: t.slice(0, 2).toUpperCase() }))}
+              placeholder="e.g. P" placeholderTextColor="#c0bcd8"
+              maxLength={2} autoCapitalize="characters" />
+ 
+            <Text style={styles.modalLabel}>Logo Colour</Text>
+            <View style={styles.expColorRow}>
+              {EXP_COLOR_PAIRS.map((pair, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => setExpColorIdx(idx)}
+                  style={[
+                    styles.expColorSwatch,
+                    { backgroundColor: pair.bgColor, borderColor: pair.textColor },
+                    expColorIdx === idx && styles.expColorSwatchActive,
+                  ]}
+                >
+                  <Text style={{ color: pair.textColor, fontSize: 11, fontWeight: '700' }}>
+                    {draftExp.initial
+                      ? draftExp.initial.slice(0, 2).toUpperCase()
+                      : draftExp.company
+                        ? draftExp.company.charAt(0).toUpperCase()
+                        : 'A'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+ 
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setExpModal(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={saveExp}>
+                <Text style={styles.modalSaveText}>
+                  {expEditIdx === null ? '+ Add' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+ 
+      {/* ════════════════════════════════════════
+          MODAL 4 — Edit Achievements
+      ════════════════════════════════════════ */}
+      <Modal visible={achModal} transparent animationType="fade"
+        onRequestClose={() => setAchModal(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableWithoutFeedback onPress={() => setAchModal(false)}>
             <View style={StyleSheet.absoluteFill} />
           </TouchableWithoutFeedback>
@@ -455,13 +638,14 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Edit Achievements</Text>
  
-            {/* Existing entries with delete */}
             <ScrollView style={styles.modalListScroll} nestedScrollEnabled>
               {achievements.map((a, i) => (
                 <View key={i} style={styles.modalListRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.modalListLabel} numberOfLines={1}>{a.title}</Text>
-                    {a.subtitle ? <Text style={styles.modalListSub} numberOfLines={1}>{a.subtitle}</Text> : null}
+                    {a.subtitle
+                      ? <Text style={styles.modalListSub} numberOfLines={1}>{a.subtitle}</Text>
+                      : null}
                   </View>
                   <TouchableOpacity onPress={() => deleteAchievement(a.title)} style={styles.deleteBtn}>
                     <Text style={styles.deleteBtnText}>✕</Text>
@@ -470,13 +654,12 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </ScrollView>
  
-            {/* Add new achievement */}
             <View style={styles.modalDivider} />
             <Text style={styles.modalLabel}>Add New Entry</Text>
             <TextInput style={styles.modalInput} value={newAchTitle}
               onChangeText={setNewAchTitle} placeholder="Title / Achievement"
               placeholderTextColor="#c0bcd8" />
-            <TextInput style={styles.modalInput} value={newAchSub}
+            <TextInput style={[styles.modalInput, { marginTop: 8 }]} value={newAchSub}
               onChangeText={setNewAchSub} placeholder="Subtitle (optional)"
               placeholderTextColor="#c0bcd8" />
  
@@ -513,8 +696,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eceaf8',
     position: 'relative',
   },
- 
-  avatarWrap: { position: 'relative', marginBottom: 14 },
+  avatarWrap:    { position: 'relative', marginBottom: 14 },
   avatar: {
     width: 96, height: 96, borderRadius: 48,
     borderWidth: 4, borderColor: '#fff',
@@ -535,7 +717,7 @@ const styles = StyleSheet.create({
   badgeTick:    { color: '#fff', fontSize: 11, fontWeight: '700' },
   name:         { fontSize: 26, fontWeight: '700', color: '#2d2150', marginBottom: 4, letterSpacing: 0.2 },
   roleText:     { fontSize: 13, color: '#8a82aa', marginBottom: 10, letterSpacing: 0.3 },
-  companyLine:  {
+  companyLine: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#fff', borderRadius: 999,
     paddingVertical: 6, paddingHorizontal: 14, marginBottom: 16,
@@ -550,8 +732,8 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: 'rgba(160,140,220,0.18)', marginHorizontal: 20 },
  
   // ── Cards ─────────────────────────────────
-  cards:     { paddingTop: 20, paddingHorizontal: 16 },
-  card:      {
+  cards:      { paddingTop: 20, paddingHorizontal: 16 },
+  card: {
     backgroundColor: '#fff', borderRadius: 20, padding: 18, marginBottom: 12,
     elevation: 3, shadowColor: '#6450b4', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07, shadowRadius: 8,
@@ -560,21 +742,20 @@ const styles = StyleSheet.create({
   cardIcon:   { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   cardTitle:  { flex: 1, fontSize: 14, fontWeight: '700', color: '#2d2150', marginLeft: 10 },
  
-  // ── Edit Button ───────────────────────────
+  // ── Edit Button (header pencil) ───────────
   editBtn: {
-    position: 'absolute', top: 16, right: 16,
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0eeff',
     alignItems: 'center', justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#6450b4', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12, shadowRadius: 4,
+    elevation: 2,
+    shadowColor: '#6450b4', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10, shadowRadius: 3,
   },
   editBtnIcon: { fontSize: 13 },
  
   // ── Skills ────────────────────────────────
   skillTags: { flexDirection: 'row', flexWrap: 'wrap' },
-  tag:       {
+  tag: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#f5f3fc', borderWidth: 1, borderColor: '#e4dffa',
     borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12,
@@ -584,13 +765,26 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 12, fontWeight: '500', color: '#4a3fa0' },
  
   // ── Experience ────────────────────────────
-  expItem:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f2f0fa' },
+  expItem: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: '#f2f0fa',
+  },
   expLogo:    { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  expInitial: { fontSize: 14, fontWeight: '700' },
+  expInitial: { fontSize: 13, fontWeight: '700' },
   expInfo:    { flex: 1 },
   expRole:    { fontSize: 13, fontWeight: '600', color: '#2d2150', marginBottom: 2 },
   expCo:      { fontSize: 11.5, color: '#9b94b8' },
-  expYr:      { fontSize: 11, color: '#b4aed0', fontWeight: '500', marginLeft: 8 },
+  expYr:      { fontSize: 11, color: '#b4aed0', fontWeight: '500', marginLeft: 6 },
+ 
+  // Per-row action buttons (edit + delete)
+  expActionBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: '#f0eeff',
+    alignItems: 'center', justifyContent: 'center', marginLeft: 5,
+  },
+  expActionDelete: { backgroundColor: '#fce8e8' },
+  expActionIcon:   { fontSize: 11 },
  
   // ── Achievements ──────────────────────────
   achItem: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f2f0fa' },
@@ -612,11 +806,11 @@ const styles = StyleSheet.create({
     elevation: 16,
     shadowColor: '#2d2150', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18, shadowRadius: 20,
-    maxHeight: '85%',
+    maxHeight: '88%',
   },
   modalTitle:  { fontSize: 17, fontWeight: '700', color: '#2d2150', marginBottom: 16, textAlign: 'center' },
   modalLabel:  { fontSize: 11, fontWeight: '700', color: '#9b94b8', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6, marginTop: 10 },
-  modalInput:  {
+  modalInput: {
     backgroundColor: '#f3f4fa', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 10,
     fontSize: 13, color: '#2d2150',
@@ -625,7 +819,7 @@ const styles = StyleSheet.create({
   modalInputMulti: { height: 90, paddingTop: 10 },
   modalDivider:    { height: 1, backgroundColor: '#f0eeff', marginVertical: 14 },
  
-  // Existing list rows inside modals
+  // Modal list rows
   modalListScroll: { maxHeight: 160 },
   modalListRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -635,14 +829,19 @@ const styles = StyleSheet.create({
   modalListLabel: { flex: 1, fontSize: 13, color: '#2d2150', fontWeight: '500' },
   modalListSub:   { fontSize: 11, color: '#9b94b8', marginTop: 1 },
  
-  // Delete (✕) button inside modal
+  // Delete ✕ button
   deleteBtn:     { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fce8e8', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   deleteBtnText: { fontSize: 11, color: '#e05c5c', fontWeight: '700' },
  
-  // Color swatch row
+  // Skill colour swatches
   colorPickerRow:    { flexDirection: 'row', marginTop: 4, marginBottom: 6 },
   colorSwatch:       { width: 26, height: 26, borderRadius: 13, marginRight: 8, borderWidth: 2, borderColor: 'transparent' },
   colorSwatchActive: { borderColor: '#2d2150', transform: [{ scale: 1.15 }] },
+ 
+  // Experience colour swatches (shows letter preview)
+  expColorRow:         { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6, marginBottom: 4, gap: 8 },
+  expColorSwatch:      { width: 36, height: 36, borderRadius: 10, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  expColorSwatchActive:{ borderWidth: 3, transform: [{ scale: 1.15 }] },
  
   // Modal action buttons
   modalActions:    { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16, gap: 10 },
@@ -654,7 +853,6 @@ const styles = StyleSheet.create({
   // ─────────────────────────────────────────
   //  Side Nav
   // ─────────────────────────────────────────
-  // ── Logout ──────────────────────────────
   navLogoutDivider: { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
   navLogoutBtn:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 12, backgroundColor: '#fff0f0' },
   navLogoutIcon:    { fontSize: 18, marginRight: 12 },
@@ -670,9 +868,9 @@ const styles = StyleSheet.create({
     elevation: 8, shadowColor: '#2d2150',
     shadowOffset: { width: -2, height: 0 }, shadowOpacity: 0.2, shadowRadius: 6,
   },
-  dotsWrap:       { alignItems: 'center', gap: 4 },
-  dotLine:        { width: 12, height: 2.5, backgroundColor: '#fff', borderRadius: 2 },
-  navTabArrow:    { fontSize: 24, color: '#fff', fontWeight: '700' },
+  dotsWrap:           { alignItems: 'center', gap: 4 },
+  dotLine:            { width: 12, height: 2.5, backgroundColor: '#fff', borderRadius: 2 },
+  navTabArrow:        { fontSize: 24, color: '#fff', fontWeight: '700' },
   navContent: {
     flex: 1, backgroundColor: '#fff',
     paddingTop: 60, paddingHorizontal: 18,
