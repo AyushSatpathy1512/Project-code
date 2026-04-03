@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -415,6 +416,37 @@ const ProjectDetails = ({ navigation }) => {
  
   // ── Total project count ───────────────────────
   const totalCount = categories.reduce((sum, c) => sum + c.projects.length, 0);
+ 
+  // ═════════════════════════════════════════
+  //  AsyncStorage — LOAD on mount
+  // ═════════════════════════════════════════
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('@portfolio_projects');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Merge saved projects into categories (keeps styling metadata)
+          setCategories(prev => prev.map(cat => {
+            const savedCat = parsed.find(c => c.id === cat.id);
+            return savedCat ? { ...cat, projects: savedCat.projects } : cat;
+          }));
+        }
+      } catch (e) {
+        console.log('ProjectDetails load error:', e);
+      }
+    };
+    loadData();
+  }, []); // runs once on mount
+ 
+  // ═════════════════════════════════════════
+  //  AsyncStorage — SAVE whenever projects change
+  // ═════════════════════════════════════════
+  useEffect(() => {
+    // Only save the id + projects array (not the full styling metadata)
+    const toSave = categories.map(c => ({ id: c.id, projects: c.projects }));
+    AsyncStorage.setItem('@portfolio_projects', JSON.stringify(toSave)).catch(() => {});
+  }, [categories]);
  
   // ─────────────────────────────────────────────
   return (
