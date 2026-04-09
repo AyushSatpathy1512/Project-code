@@ -7,17 +7,17 @@
  * Props:
  *   text — string  the highlight text to display
  */
-
+ 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
+ 
 const Bullet = ({ text }) => (
   <View style={styles.bulletRow}>
     <View style={styles.bulletDot} />
     <Text style={styles.bulletText}>{text}</Text>
   </View>
 );
-
+ 
 const styles = StyleSheet.create({
   bulletRow: {
     flexDirection: 'row',
@@ -36,5 +36,5 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-
+ 
 export default Bullet;
