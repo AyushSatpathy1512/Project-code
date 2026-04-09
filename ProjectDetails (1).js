@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -8,8 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   SafeAreaView,
-  Animated,
-  TouchableWithoutFeedback,
   Modal,
   TextInput,
   KeyboardAvoidingView,
@@ -17,8 +15,13 @@ import {
   Alert,
 } from 'react-native';
  
-const NAV_WIDTH = 200;
-const TAB_WIDTH = 28;
+// ─────────────────────────────────────────────
+//  Global Components — imported from src/components
+//  Single source of truth — no duplication
+// ─────────────────────────────────────────────
+import SideNavBar      from '../components/SideNavBar';
+import ProjectCardItem from '../components/ProjectCardItem';
+import { COLORS, globalStyles } from '../styles/GlobalStyles';
  
 // ─────────────────────────────────────────────
 //  Initial Project Data
@@ -152,82 +155,7 @@ const blankProject = () => ({
   tech: [], description: '', bullets: [],
 });
  
-// ─────────────────────────────────────────────
-//  Side Nav
-// ─────────────────────────────────────────────
- 
-const NAV_ITEMS = [
-  { label: 'Home',     icon: '🏠', screen: 'Home'    },
-  { label: 'Projects', icon: '📁', screen: 'Project' },
-];
- 
-const SideNavBar = ({ navigation, activeScreen }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
- 
-  const toggle = () => {
-    Animated.spring(anim, { toValue: isOpen ? 0 : 1, useNativeDriver: true, friction: 8, tension: 60 }).start();
-    setIsOpen(o => !o);
-  };
-  const close = () => {
-    if (!isOpen) return;
-    Animated.spring(anim, { toValue: 0, useNativeDriver: true, friction: 8, tension: 60 }).start();
-    setIsOpen(false);
-  };
- 
-  const translateX     = anim.interpolate({ inputRange: [0,1], outputRange: [NAV_WIDTH - TAB_WIDTH, 0] });
-  const backdropOpacity = anim.interpolate({ inputRange: [0,1], outputRange: [0, 0.3] });
- 
-  return (
-    <>
-      <Animated.View pointerEvents={isOpen ? 'auto' : 'none'}
-        style={[styles.navBackdrop, { opacity: backdropOpacity }]}>
-        <TouchableWithoutFeedback onPress={close}><View style={StyleSheet.absoluteFill} /></TouchableWithoutFeedback>
-      </Animated.View>
- 
-      <Animated.View style={[styles.navDrawer, { transform: [{ translateX }] }]}>
-        <TouchableOpacity style={styles.navTab} onPress={toggle} activeOpacity={0.8}>
-          {isOpen
-            ? <Text style={styles.navTabArrow}>›</Text>
-            : <View style={styles.dotsWrap}><View style={styles.dotLine} /><View style={styles.dotLine} /><View style={styles.dotLine} /></View>
-          }
-        </TouchableOpacity>
- 
-        <View style={styles.navContent}>
-          <Text style={styles.navHeading}>Menu</Text>
-          {NAV_ITEMS.map(item => {
-            const isActive = activeScreen === item.screen;
-            return (
-              <TouchableOpacity key={item.screen}
-                style={[styles.navItem, isActive && styles.navItemActive]}
-                activeOpacity={0.75}
-                onPress={() => { close(); if (navigation) navigation.navigate(item.screen); }}>
-                <Text style={styles.navItemIcon}>{item.icon}</Text>
-                <Text style={[styles.navItemLabel, isActive && styles.navItemLabelActive]}>{item.label}</Text>
-                {isActive && <View style={styles.navActivePip} />}
-              </TouchableOpacity>
-            );
-          })}
- 
-          {/* ── Logout ── */}
-          <View style={{ flex: 1 }} />
-          <View style={styles.navLogoutDivider} />
-          <TouchableOpacity
-            style={styles.navLogoutBtn}
-            activeOpacity={0.75}
-            onPress={() => {
-              close();
-              if (navigation) navigation.replace('Login');
-            }}
-          >
-            <Text style={styles.navLogoutIcon}>🚪</Text>
-            <Text style={styles.navLogoutLabel}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </>
-  );
-};
+// SideNavBar imported from src/components/SideNavBar.js
  
 // ─────────────────────────────────────────────
 //  Project Edit Modal
@@ -546,250 +474,86 @@ const ProjectDetails = ({ navigation }) => {
   );
 };
  
-// ─────────────────────────────────────────────
-//  Project Card Item (with Edit + Delete)
-// ─────────────────────────────────────────────
- 
-const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
-  const [expanded, setExpanded] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
- 
-  const toggleExpand = () => {
-    Animated.spring(anim, {
-      toValue: expanded ? 0 : 1,
-      useNativeDriver: false, friction: 8, tension: 60,
-    }).start();
-    setExpanded(e => !e);
-  };
- 
-  const arrowRotate = anim.interpolate({ inputRange: [0,1], outputRange: ['0deg','180deg'] });
- 
-  return (
-    <View style={[styles.projectCard, { borderLeftColor: category.borderColor }]}>
- 
-      {/* ── Card Header ── */}
-      <View style={styles.projectHeader}>
-        <View style={[styles.projectLogo, { backgroundColor: project.logoBg }]}>
-          <Text style={[styles.projectLogoText, { color: project.logoColor }]}>
-            {project.initial}
-          </Text>
-        </View>
-        <View style={styles.projectTitleWrap}>
-          <Text style={styles.projectName}>{project.name}</Text>
-          <Text style={styles.projectSubtitle}>{project.subtitle}</Text>
-        </View>
- 
-        {/* ── Pencil Edit ── */}
-        <TouchableOpacity onPress={onEdit} style={styles.iconActionBtn} activeOpacity={0.7}>
-          <Text style={styles.iconActionText}>✏️</Text>
-        </TouchableOpacity>
- 
-        {/* ── Delete ── */}
-        <TouchableOpacity onPress={onDelete} style={[styles.iconActionBtn, styles.iconActionDelete]} activeOpacity={0.7}>
-          <Text style={styles.iconActionText}>🗑️</Text>
-        </TouchableOpacity>
- 
-        {/* ── Expand Arrow ── */}
-        <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn} activeOpacity={0.7}>
-          <Animated.Text style={[styles.expandArrow, { transform: [{ rotate: arrowRotate }] }]}>
-            ▾
-          </Animated.Text>
-        </TouchableOpacity>
-      </View>
- 
-      {/* Tech Tags */}
-      <View style={styles.techTagsRow}>
-        {project.tech.map((t, i) => (
-          <View key={i} style={[styles.techTag, { backgroundColor: category.tagBg, borderColor: category.tagText + '55' }]}>
-            <Text style={[styles.techTagText, { color: category.tagText }]}>{t}</Text>
-          </View>
-        ))}
-      </View>
- 
-      {/* Description */}
-      <Text style={styles.projectDesc}>{project.description}</Text>
- 
-      {/* Expandable Highlights */}
-      {expanded && project.bullets.length > 0 && (
-        <View style={styles.bulletsWrap}>
-          <View style={styles.bulletsDivider} />
-          <Text style={styles.bulletsHeading}>Key Highlights</Text>
-          {project.bullets.map((b, i) => (
-            <View key={i} style={styles.bulletRow}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.bulletText}>{b}</Text>
-            </View>
-          ))}
-        </View>
-      )}
- 
-      <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.expandLabelBtn}>
-        <Text style={[styles.expandLabel, { color: category.borderColor }]}>
-          {expanded ? 'Show less ▲' : 'Show highlights ▼'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+// ProjectCardItem imported from src/components/ProjectCardItem.js
  
 // ─────────────────────────────────────────────
 //  Styles
 // ─────────────────────────────────────────────
  
+// ─────────────────────────────────────────────
+//  Shared styles from GlobalStyles:
+//    safeArea, scroll, divider
+//    modalOverlay, modalBox, modalTitle, modalLabel
+//    modalInput, modalInputMulti, modalActions
+//    modalCancelBtn/Text, modalSaveBtn/Text
+//    deleteBtn/Text, inlineAddRow/Btn/BtnText
+//    modalListRow, modalListLabel
+// ─────────────────────────────────────────────
+ 
 const styles = StyleSheet.create({
  
-  safeArea:      { flex: 1, backgroundColor: '#eceaf8' },
-  scroll:        { flex: 1 },
+  // ── Screen base — from GlobalStyles ───────
+  safeArea:      globalStyles.safeArea,
+  scroll:        globalStyles.scroll,
   scrollContent: { paddingBottom: 48 },
+  divider:       globalStyles.divider,
+  body:          { paddingHorizontal: 16, paddingTop: 20 },
  
   // ── Hero ──────────────────────────────────
-  hero: { alignItems: 'center', paddingTop: 52, paddingBottom: 28, paddingHorizontal: 24, backgroundColor: '#eceaf8' },
+  hero: { alignItems: 'center', paddingTop: 52, paddingBottom: 28, paddingHorizontal: 24, backgroundColor: COLORS.screenBg },
   backBtn: {
     position: 'absolute', top: 20, left: 20, width: 34, height: 34,
-    backgroundColor: '#fff', borderRadius: 17,
+    backgroundColor: COLORS.cardBg, borderRadius: 17,
     alignItems: 'center', justifyContent: 'center', elevation: 4,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.09, shadowRadius: 6,
   },
   backArrow:    { fontSize: 22, color: '#888', lineHeight: 26, marginTop: -2 },
   pageIconWrap: {
-    width: 72, height: 72, borderRadius: 36, backgroundColor: '#fff',
+    width: 72, height: 72, borderRadius: 36, backgroundColor: COLORS.cardBg,
     alignItems: 'center', justifyContent: 'center', marginBottom: 12, elevation: 6,
     shadowColor: '#7864c8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
   pageIcon:     { fontSize: 32 },
-  pageTitle:    { fontSize: 26, fontWeight: '700', color: '#2d2150', marginBottom: 6, letterSpacing: 0.2 },
+  pageTitle:    { fontSize: 26, fontWeight: '700', color: COLORS.textDark, marginBottom: 6, letterSpacing: 0.2 },
   pageSubtitle: { fontSize: 13, color: '#8a82aa', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
  
-  statsRow:        { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 16, paddingVertical: 12, paddingHorizontal: 8, elevation: 2, shadowColor: '#6450b4', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
+  statsRow:        { flexDirection: 'row', backgroundColor: COLORS.cardBg, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 8, elevation: 2, shadowColor: COLORS.shadowPrimary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
   statPill:        { flex: 1, alignItems: 'center' },
   statPillDivider: { width: 1, backgroundColor: '#ebe7fa', marginVertical: 2 },
-  statNum:         { fontSize: 18, fontWeight: '700', color: '#2d2150' },
+  statNum:         { fontSize: 18, fontWeight: '700', color: COLORS.textDark },
   statLabel:       { fontSize: 10, color: '#9e9ebb', marginTop: 2, fontWeight: '500' },
  
-  divider: { height: 1, backgroundColor: 'rgba(160,140,220,0.18)', marginHorizontal: 20 },
-  body:    { paddingHorizontal: 16, paddingTop: 20 },
- 
   // ── Category ──────────────────────────────
-  categorySection: { marginBottom: 28 },
-  categoryHeader:  { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  categoryIcon:    { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  categoryLabel:   { flex: 1, fontSize: 15, fontWeight: '700', color: '#2d2150' },
-  categoryCount:   { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  categorySection:   { marginBottom: 28 },
+  categoryHeader:    { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  categoryIcon:      { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  categoryLabel:     { flex: 1, fontSize: 15, fontWeight: '700', color: COLORS.textDark },
+  categoryCount:     { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   categoryCountText: { fontSize: 12, fontWeight: '700' },
  
   // ── Add Project Button ─────────────────────
-  addProjectBtn: {
-    borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 14,
-    paddingVertical: 12, alignItems: 'center', marginTop: 4,
-  },
+  addProjectBtn:     { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 14, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   addProjectBtnText: { fontSize: 13, fontWeight: '700' },
  
-  // ── Project Card ──────────────────────────
-  projectCard: {
-    backgroundColor: '#fff', borderRadius: 18, padding: 16, marginBottom: 12,
-    borderLeftWidth: 4, elevation: 3, shadowColor: '#6450b4',
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
-  },
-  projectHeader:    { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  projectLogo:      { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  projectLogoText:  { fontSize: 12, fontWeight: '700' },
-  projectTitleWrap: { flex: 1 },
-  projectName:      { fontSize: 14, fontWeight: '700', color: '#2d2150', marginBottom: 2 },
-  projectSubtitle:  { fontSize: 11.5, color: '#9b94b8' },
- 
-  // Pencil + Delete icon buttons
-  iconActionBtn:    { width: 28, height: 28, borderRadius: 14, backgroundColor: '#f0eeff', alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
-  iconActionDelete: { backgroundColor: '#fce8e8' },
-  iconActionText:   { fontSize: 12 },
- 
-  expandBtn:   { padding: 4, marginLeft: 4 },
-  expandArrow: { fontSize: 18, color: '#b4aed0' },
- 
-  // Tech tags
-  techTagsRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
-  techTag:     { borderRadius: 999, borderWidth: 1, paddingVertical: 3, paddingHorizontal: 10, marginRight: 6, marginBottom: 6 },
-  techTagText: { fontSize: 10.5, fontWeight: '600' },
- 
-  projectDesc: { fontSize: 12.5, color: '#5a5375', lineHeight: 19, marginBottom: 8 },
- 
-  bulletsWrap:    { marginTop: 4 },
-  bulletsDivider: { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
-  bulletsHeading: { fontSize: 10, fontWeight: '700', color: '#b4aed0', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
-  bulletRow:      { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
-  bulletDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: '#c4bde0', marginTop: 6, marginRight: 8 },
-  bulletText:     { flex: 1, fontSize: 12, color: '#4e4670', lineHeight: 18 },
- 
-  expandLabelBtn: { marginTop: 6, alignSelf: 'flex-start' },
-  expandLabel:    { fontSize: 11.5, fontWeight: '600' },
- 
-  // ─────────────────────────────────────────
-  //  Modal
-  // ─────────────────────────────────────────
-  modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(20,10,50,0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalBox: {
-    backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    padding: 22, maxHeight: '90%',
-    elevation: 16, shadowColor: '#2d2150',
-    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 16,
-  },
-  modalTitle:   { fontSize: 17, fontWeight: '700', color: '#2d2150', marginBottom: 12, textAlign: 'center' },
-  modalLabel:   { fontSize: 11, fontWeight: '700', color: '#9b94b8', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6, marginTop: 10 },
-  modalInput:   {
-    backgroundColor: '#f3f4fa', borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 13, color: '#2d2150',
-    borderWidth: 1, borderColor: '#e4dffa',
-  },
-  modalInputMulti:      { height: 90, paddingTop: 10 },
-  modalSectionDivider:  { height: 1, backgroundColor: '#f0eeff', marginVertical: 14 },
- 
-  // Modal list rows (tech / bullets)
-  modalListRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: '#f5f3fc',
-  },
-  modalListLabel: { flex: 1, fontSize: 13, color: '#2d2150', fontWeight: '500' },
- 
-  // Inline add row (input + button side by side)
-  inlineAddRow:    { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  inlineAddBtn:    { backgroundColor: '#4a3fa0', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14 },
-  inlineAddBtnText:{ fontSize: 12, fontWeight: '700', color: '#fff' },
- 
-  // Delete ✕ button
-  deleteBtn:     { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fce8e8', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
-  deleteBtnText: { fontSize: 11, color: '#e05c5c', fontWeight: '700' },
- 
-  // Modal bottom actions
-  modalActions:    { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16, gap: 10 },
-  modalCancelBtn:  { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, backgroundColor: '#f0eeff' },
-  modalCancelText: { fontSize: 13, fontWeight: '600', color: '#4a3fa0' },
-  modalSaveBtn:    { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, backgroundColor: '#4a3fa0' },
-  modalSaveText:   { fontSize: 13, fontWeight: '600', color: '#fff' },
- 
-  // ─────────────────────────────────────────
-  //  Side Nav
-  // ─────────────────────────────────────────
-  // ── Logout ──────────────────────────────
-  navLogoutDivider: { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
-  navLogoutBtn:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 12, backgroundColor: '#fff0f0' },
-  navLogoutIcon:    { fontSize: 18, marginRight: 12 },
-  navLogoutLabel:   { fontSize: 14, fontWeight: '600', color: '#e05c5c' },
- 
-  navBackdrop:        { ...StyleSheet.absoluteFillObject, backgroundColor: '#1a0a40', zIndex: 10 },
-  navDrawer:          { position: 'absolute', top: 0, right: 0, bottom: 0, width: NAV_WIDTH, flexDirection: 'row', zIndex: 20 },
-  navTab:             { width: TAB_WIDTH, alignSelf: 'center', height: 72, backgroundColor: '#4a3fa0', borderTopLeftRadius: 12, borderBottomLeftRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#2d2150', shadowOffset: { width: -2, height: 0 }, shadowOpacity: 0.2, shadowRadius: 6 },
-  dotsWrap:           { alignItems: 'center', gap: 4 },
-  dotLine:            { width: 12, height: 2.5, backgroundColor: '#fff', borderRadius: 2 },
-  navTabArrow:        { fontSize: 24, color: '#fff', fontWeight: '700' },
-  navContent:         { flex: 1, backgroundColor: '#fff', paddingTop: 60, paddingHorizontal: 18, elevation: 12, shadowColor: '#2d2150', shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 12 },
-  navHeading:         { fontSize: 10, fontWeight: '700', color: '#b4aed0', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 20 },
-  navItem:            { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 6, position: 'relative' },
-  navItemActive:      { backgroundColor: '#f0eeff' },
-  navItemIcon:        { fontSize: 18, marginRight: 12 },
-  navItemLabel:       { fontSize: 14, fontWeight: '500', color: '#4e4670' },
-  navItemLabelActive: { color: '#4a3fa0', fontWeight: '700' },
-  navActivePip:       { position: 'absolute', right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: '#4a3fa0' },
+  // ── Modal — from GlobalStyles ─────────────
+  // Bottom-sheet variant for this screen
+  modalOverlay:       { flex: 1, backgroundColor: COLORS.overlayBg, justifyContent: 'flex-end' },
+  modalBox:           globalStyles.modalBoxSheet,
+  modalTitle:         globalStyles.modalTitle,
+  modalLabel:         globalStyles.modalLabel,
+  modalInput:         globalStyles.modalInput,
+  modalInputMulti:    globalStyles.modalInputMulti,
+  modalSectionDivider:{ height: 1, backgroundColor: COLORS.primaryLight, marginVertical: 14 },
+  modalListRow:       globalStyles.modalListRow,
+  modalListLabel:     globalStyles.modalListLabel,
+  modalActions:       globalStyles.modalActions,
+  modalCancelBtn:     globalStyles.modalCancelBtn,
+  modalCancelText:    globalStyles.modalCancelText,
+  modalSaveBtn:       globalStyles.modalSaveBtn,
+  modalSaveText:      globalStyles.modalSaveText,
+  deleteBtn:          globalStyles.deleteBtn,
+  deleteBtnText:      globalStyles.deleteBtnText,
+  inlineAddRow:       globalStyles.inlineAddRow,
+  inlineAddBtn:       globalStyles.inlineAddBtn,
+  inlineAddBtnText:   globalStyles.inlineAddBtnText,
 });
