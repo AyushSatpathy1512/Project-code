@@ -19,9 +19,9 @@
  *  myBtn: { ...globalStyles.modalSaveBtn, marginTop: 8 }
  * ─────────────────────────────────────────────────────────────
  */
-
+ 
 import { StyleSheet } from 'react-native';
-
+ 
 // ═════════════════════════════════════════════
 //  COLOUR PALETTE
 //  Every colour used across the app lives here.
@@ -32,35 +32,35 @@ export const COLORS = {
   primary:        '#4a3fa0',   // indigo — primary action colour
   primaryLight:   '#f0eeff',   // light indigo — backgrounds, hover
   primaryMid:     '#7c6ec7',   // mid indigo — accents
-
+ 
   // ── Background ─────────────────────────────
   screenBg:       '#eceaf8',   // app-wide screen background
   cardBg:         '#ffffff',   // white card background
   inputBg:        '#f3f4fa',   // input field background
   overlayBg:      'rgba(20,10,50,0.45)', // modal dark backdrop
-
+ 
   // ── Text ───────────────────────────────────
   textDark:       '#2d2150',   // headings, primary text
   textMid:        '#4e4670',   // body text
   textLight:      '#9b94b8',   // subtitles, captions, labels
   textFaint:      '#b4aed0',   // placeholder-level text
-
+ 
   // ── Border / Divider ───────────────────────
   border:         '#e4dffa',   // standard input border
   borderLight:    '#f5f3fc',   // subtle dividers inside modals
   divider:        'rgba(160,140,220,0.18)', // section dividers
-
+ 
   // ── Semantic ───────────────────────────────
   danger:         '#e05c5c',   // delete / destructive actions
   dangerBg:       '#fce8e8',   // delete button background
   success:        '#2e9b6b',   // success / confirm
   warning:        '#c98a10',   // warnings, achievements icon
-
+ 
   // ── Shadow ─────────────────────────────────
   shadowPrimary:  '#6450b4',   // card shadows
   shadowDark:     '#2d2150',   // modal shadows
 };
-
+ 
 // ═════════════════════════════════════════════
 //  TYPOGRAPHY
 //  Font sizes and weights used across the app.
@@ -75,13 +75,13 @@ export const TYPOGRAPHY = {
   xl:   18,
   xxl:  22,
   hero: 26,
-
+ 
   // Font weights
   regular:    '400',
   medium:     '500',
   semibold:   '600',
   bold:       '700',
-
+ 
   // Letter spacing
   tight:   0.2,
   normal:  0.3,
@@ -89,7 +89,7 @@ export const TYPOGRAPHY = {
   wider:   1.5,
   widest:  2.0,
 };
-
+ 
 // ═════════════════════════════════════════════
 //  SPACING
 //  Consistent padding and margin values.
@@ -104,7 +104,7 @@ export const SPACING = {
   xxl:  22,
   hero: 24,
 };
-
+ 
 // ═════════════════════════════════════════════
 //  BORDER RADIUS
 // ═════════════════════════════════════════════
@@ -117,7 +117,7 @@ export const RADIUS = {
   card:   24,
   pill:   999,
 };
-
+ 
 // ═════════════════════════════════════════════
 //  GLOBAL STYLES
 //  Shared StyleSheet objects imported by screens
@@ -125,7 +125,7 @@ export const RADIUS = {
 //  that were previously copy-pasted across files.
 // ═════════════════════════════════════════════
 export const globalStyles = StyleSheet.create({
-
+ 
   // ─────────────────────────────────────────
   //  Screen Base
   // ─────────────────────────────────────────
@@ -135,13 +135,13 @@ export const globalStyles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
-
+ 
   divider: {
     height: 1,
     backgroundColor: COLORS.divider,
     marginHorizontal: SPACING.lg,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Card
   // ─────────────────────────────────────────
@@ -174,7 +174,7 @@ export const globalStyles = StyleSheet.create({
     color: COLORS.textDark,
     marginLeft: SPACING.sm + 2,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Modal — Overlay & Box
   // ─────────────────────────────────────────
@@ -210,7 +210,7 @@ export const globalStyles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 16,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Modal — Typography
   // ─────────────────────────────────────────
@@ -230,7 +230,7 @@ export const globalStyles = StyleSheet.create({
     marginBottom: SPACING.xs + 2,
     marginTop: SPACING.sm + 2,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Modal — Input Fields
   // ─────────────────────────────────────────
@@ -253,7 +253,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: COLORS.primaryLight,
     marginVertical: SPACING.base,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Modal — List Rows (skills, achievements)
   // ─────────────────────────────────────────
@@ -276,7 +276,7 @@ export const globalStyles = StyleSheet.create({
     color: COLORS.textLight,
     marginTop: 1,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Modal — Action Buttons Row
   //  Used at the bottom of EVERY modal.
@@ -309,7 +309,7 @@ export const globalStyles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.semibold,
     color: COLORS.cardBg,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Delete Button (✕ inside modal list rows)
   //  Used in Skills modal, Achievements modal,
@@ -328,14 +328,14 @@ export const globalStyles = StyleSheet.create({
     color: COLORS.danger,
     fontWeight: TYPOGRAPHY.bold,
   },
-
+ 
   // ─────────────────────────────────────────
   //  Colour Swatches (skill picker)
   // ─────────────────────────────────────────
   colorPickerRow:    { flexDirection: 'row', marginTop: 4, marginBottom: 6 },
   colorSwatch:       { width: 26, height: 26, borderRadius: 13, marginRight: 8, borderWidth: 2, borderColor: 'transparent' },
   colorSwatchActive: { borderColor: COLORS.textDark, transform: [{ scale: 1.15 }] },
-
+ 
   // ─────────────────────────────────────────
   //  Inline Add Row
   //  (TextInput + Add button side by side)
@@ -358,3 +358,4 @@ export const globalStyles = StyleSheet.create({
     color: COLORS.cardBg,
   },
 });
+ 
