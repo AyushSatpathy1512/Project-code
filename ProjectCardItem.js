@@ -12,7 +12,7 @@
  *   onEdit   — function  called when ✏️ is tapped
  *   onDelete — function  called when 🗑️ is tapped
  */
-
+ 
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -21,13 +21,13 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import TechTag from './TechTag';
+import TechTag from './Techtag';
 import Bullet  from './Bullet';
-
+ 
 const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
-
+ 
   const toggleExpand = () => {
     Animated.spring(anim, {
       toValue: expanded ? 0 : 1,
@@ -35,36 +35,36 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
     }).start();
     setExpanded(e => !e);
   };
-
+ 
   const arrowRotate = anim.interpolate({
     inputRange:  [0, 1],
     outputRange: ['0deg', '180deg'],
   });
-
+ 
   return (
     <View style={[styles.projectCard, { borderLeftColor: category.borderColor }]}>
-
+ 
       {/* ── Card Header ── */}
       <View style={styles.projectHeader}>
-
+ 
         {/* Logo initial */}
         <View style={[styles.projectLogo, { backgroundColor: project.logoBg }]}>
           <Text style={[styles.projectLogoText, { color: project.logoColor }]}>
             {project.initial}
           </Text>
         </View>
-
+ 
         {/* Title + subtitle */}
         <View style={styles.projectTitleWrap}>
           <Text style={styles.projectName}>{project.name}</Text>
           <Text style={styles.projectSubtitle}>{project.subtitle}</Text>
         </View>
-
+ 
         {/* ✏️ Edit */}
         <TouchableOpacity onPress={onEdit} style={styles.iconActionBtn} activeOpacity={0.7}>
           <Text style={styles.iconActionText}>✏️</Text>
         </TouchableOpacity>
-
+ 
         {/* 🗑️ Delete */}
         <TouchableOpacity
           onPress={onDelete}
@@ -73,7 +73,7 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
         >
           <Text style={styles.iconActionText}>🗑️</Text>
         </TouchableOpacity>
-
+ 
         {/* ▾ Expand arrow */}
         <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn} activeOpacity={0.7}>
           <Animated.Text style={[styles.expandArrow, { transform: [{ rotate: arrowRotate }] }]}>
@@ -81,7 +81,7 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
           </Animated.Text>
         </TouchableOpacity>
       </View>
-
+ 
       {/* ── Tech Tags — uses global TechTag ── */}
       <View style={styles.techTagsRow}>
         {project.tech.map((t, i) => (
@@ -93,10 +93,10 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
           />
         ))}
       </View>
-
+ 
       {/* ── Description ── */}
       <Text style={styles.projectDesc}>{project.description}</Text>
-
+ 
       {/* ── Expandable Key Highlights — uses global Bullet ── */}
       {expanded && project.bullets.length > 0 && (
         <View style={styles.bulletsWrap}>
@@ -107,7 +107,7 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
           ))}
         </View>
       )}
-
+ 
       {/* ── Show / hide toggle label ── */}
       <TouchableOpacity
         onPress={toggleExpand}
@@ -118,11 +118,11 @@ const ProjectCardItem = ({ project, category, onEdit, onDelete }) => {
           {expanded ? 'Show less ▲' : 'Show highlights ▼'}
         </Text>
       </TouchableOpacity>
-
+ 
     </View>
   );
 };
-
+ 
 // ─────────────────────────────────────────────
 //  Styles — scoped to this component only
 // ─────────────────────────────────────────────
@@ -152,5 +152,5 @@ const styles = StyleSheet.create({
   expandLabelBtn:   { marginTop: 6, alignSelf: 'flex-start' },
   expandLabel:      { fontSize: 11.5, fontWeight: '600' },
 });
-
+ 
 export default ProjectCardItem;
