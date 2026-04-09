@@ -19,9 +19,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //  Global Components — imported from src/components
 //  Single source of truth — no duplication
 // ─────────────────────────────────────────────
-import SideNavBar from '../components/SideNavBar';
-import EditBtn    from '../components/EditBtn';
-import { COLORS, globalStyles } from '../styles/GlobalStyles';
+import SideNavBar from '../Styles/Sidenavbar';
+import EditBtn    from '../Styles/Editbtn';
+import { COLORS, globalStyles } from '../Styles/Globalstyles';
  
 // Preset dot colours for new skills
 const SKILL_COLORS = [
