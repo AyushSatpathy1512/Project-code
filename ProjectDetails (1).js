@@ -19,9 +19,9 @@ import {
 //  Global Components — imported from src/components
 //  Single source of truth — no duplication
 // ─────────────────────────────────────────────
-import SideNavBar      from '../components/SideNavBar';
-import ProjectCardItem from '../components/ProjectCardItem';
-import { COLORS, globalStyles } from '../styles/GlobalStyles';
+import SideNavBar      from '../Styles/Sidenavbar';
+import ProjectCardItem from '../Styles/Projectcarditem';
+import { COLORS, globalStyles } from '../Styles/Globalstyles';
  
 // ─────────────────────────────────────────────
 //  Initial Project Data
