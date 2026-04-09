@@ -1,361 +1,173 @@
 /**
- * GlobalStyles.js — Single Source of Truth
+ * SideNavBar — Global Reusable Component
  *
- * All shared colours, spacing, typography, and reusable component
- * styles are defined HERE and imported wherever needed.
+ * Animated slide-in navigation drawer used by HomeScreen and ProjectDetails.
+ * Defined ONCE here — imported wherever needed.
  *
- * ─────────────────────────────────────────────────────────────
- *  HOW TO USE
- * ─────────────────────────────────────────────────────────────
- *  import { COLORS, TYPOGRAPHY, globalStyles } from '../styles/GlobalStyles';
- *
- *  // Use a colour directly
- *  color: COLORS.primary
- *
- *  // Use a global style
- *  style={globalStyles.modalSaveBtn}
- *
- *  // Spread into a local StyleSheet
- *  myBtn: { ...globalStyles.modalSaveBtn, marginTop: 8 }
- * ─────────────────────────────────────────────────────────────
+ * Props:
+ *   navigation   — React Navigation prop (navigate / replace)
+ *   activeScreen — 'Home' | 'Project'  used to highlight the active item
  */
  
-import { StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  StyleSheet,
+  Animated,
+} from 'react-native';
  
-// ═════════════════════════════════════════════
-//  COLOUR PALETTE
-//  Every colour used across the app lives here.
-//  Never use raw hex strings in screen files.
-// ═════════════════════════════════════════════
-export const COLORS = {
-  // ── Brand ──────────────────────────────────
-  primary:        '#4a3fa0',   // indigo — primary action colour
-  primaryLight:   '#f0eeff',   // light indigo — backgrounds, hover
-  primaryMid:     '#7c6ec7',   // mid indigo — accents
+const NAV_WIDTH = 200;
+const TAB_WIDTH = 28;
  
-  // ── Background ─────────────────────────────
-  screenBg:       '#eceaf8',   // app-wide screen background
-  cardBg:         '#ffffff',   // white card background
-  inputBg:        '#f3f4fa',   // input field background
-  overlayBg:      'rgba(20,10,50,0.45)', // modal dark backdrop
+const NAV_ITEMS = [
+  { label: 'Home',     icon: '🏠', screen: 'Home'    },
+  { label: 'Projects', icon: '📁', screen: 'Project' },
+];
  
-  // ── Text ───────────────────────────────────
-  textDark:       '#2d2150',   // headings, primary text
-  textMid:        '#4e4670',   // body text
-  textLight:      '#9b94b8',   // subtitles, captions, labels
-  textFaint:      '#b4aed0',   // placeholder-level text
+const SideNavBar = ({ navigation, activeScreen = 'Home' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const anim = useRef(new Animated.Value(0)).current;
  
-  // ── Border / Divider ───────────────────────
-  border:         '#e4dffa',   // standard input border
-  borderLight:    '#f5f3fc',   // subtle dividers inside modals
-  divider:        'rgba(160,140,220,0.18)', // section dividers
+  const toggle = () => {
+    Animated.spring(anim, {
+      toValue: isOpen ? 0 : 1,
+      useNativeDriver: true, friction: 8, tension: 60,
+    }).start();
+    setIsOpen(prev => !prev);
+  };
  
-  // ── Semantic ───────────────────────────────
-  danger:         '#e05c5c',   // delete / destructive actions
-  dangerBg:       '#fce8e8',   // delete button background
-  success:        '#2e9b6b',   // success / confirm
-  warning:        '#c98a10',   // warnings, achievements icon
+  const close = () => {
+    if (!isOpen) return;
+    Animated.spring(anim, {
+      toValue: 0, useNativeDriver: true, friction: 8, tension: 60,
+    }).start();
+    setIsOpen(false);
+  };
  
-  // ── Shadow ─────────────────────────────────
-  shadowPrimary:  '#6450b4',   // card shadows
-  shadowDark:     '#2d2150',   // modal shadows
+  const translateX      = anim.interpolate({ inputRange: [0, 1], outputRange: [NAV_WIDTH - TAB_WIDTH, 0] });
+  const backdropOpacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.3] });
+ 
+  return (
+    <>
+      {/* ── Dark backdrop — tapping it closes the drawer ── */}
+      <Animated.View
+        pointerEvents={isOpen ? 'auto' : 'none'}
+        style={[styles.navBackdrop, { opacity: backdropOpacity }]}
+      >
+        <TouchableWithoutFeedback onPress={close}>
+          <View style={StyleSheet.absoluteFill} />
+        </TouchableWithoutFeedback>
+      </Animated.View>
+ 
+      {/* ── Drawer panel ── */}
+      <Animated.View style={[styles.navDrawer, { transform: [{ translateX }] }]}>
+ 
+        {/* Trigger tab — 3 dots when closed, › when open */}
+        <TouchableOpacity style={styles.navTab} onPress={toggle} activeOpacity={0.8}>
+          {isOpen
+            ? <Text style={styles.navTabArrow}>›</Text>
+            : <View style={styles.dotsWrap}>
+                <View style={styles.dotLine} />
+                <View style={styles.dotLine} />
+                <View style={styles.dotLine} />
+              </View>
+          }
+        </TouchableOpacity>
+ 
+        {/* Menu content */}
+        <View style={styles.navContent}>
+          <Text style={styles.navHeading}>Menu</Text>
+ 
+          {NAV_ITEMS.map(item => {
+            const isActive = activeScreen === item.screen;
+            return (
+              <TouchableOpacity
+                key={item.screen}
+                style={[styles.navItem, isActive && styles.navItemActive]}
+                activeOpacity={0.75}
+                onPress={() => {
+                  close();
+                  if (navigation) navigation.navigate(item.screen);
+                }}
+              >
+                <Text style={styles.navItemIcon}>{item.icon}</Text>
+                <Text style={[styles.navItemLabel, isActive && styles.navItemLabelActive]}>
+                  {item.label}
+                </Text>
+                {isActive && <View style={styles.navActivePip} />}
+              </TouchableOpacity>
+            );
+          })}
+ 
+          {/* Spacer pushes Logout to bottom */}
+          <View style={{ flex: 1 }} />
+ 
+          {/* ── Logout ── */}
+          <View style={styles.navLogoutDivider} />
+          <TouchableOpacity
+            style={styles.navLogoutBtn}
+            activeOpacity={0.75}
+            onPress={() => {
+              close();
+              if (navigation) navigation.replace('Login');
+            }}
+          >
+            <Text style={styles.navLogoutIcon}>🚪</Text>
+            <Text style={styles.navLogoutLabel}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+ 
+      </Animated.View>
+    </>
+  );
 };
  
-// ═════════════════════════════════════════════
-//  TYPOGRAPHY
-//  Font sizes and weights used across the app.
-// ═════════════════════════════════════════════
-export const TYPOGRAPHY = {
-  // Font sizes
-  xs:   10,
-  sm:   11,
-  base: 13,
-  md:   14,
-  lg:   16,
-  xl:   18,
-  xxl:  22,
-  hero: 26,
- 
-  // Font weights
-  regular:    '400',
-  medium:     '500',
-  semibold:   '600',
-  bold:       '700',
- 
-  // Letter spacing
-  tight:   0.2,
-  normal:  0.3,
-  wide:    1.0,
-  wider:   1.5,
-  widest:  2.0,
-};
- 
-// ═════════════════════════════════════════════
-//  SPACING
-//  Consistent padding and margin values.
-// ═════════════════════════════════════════════
-export const SPACING = {
-  xs:   4,
-  sm:   8,
-  md:   12,
-  base: 14,
-  lg:   16,
-  xl:   18,
-  xxl:  22,
-  hero: 24,
-};
- 
-// ═════════════════════════════════════════════
-//  BORDER RADIUS
-// ═════════════════════════════════════════════
-export const RADIUS = {
-  sm:     8,
-  md:     10,
-  lg:     12,
-  xl:     14,
-  xxl:    20,
-  card:   24,
-  pill:   999,
-};
- 
-// ═════════════════════════════════════════════
-//  GLOBAL STYLES
-//  Shared StyleSheet objects imported by screens
-//  and components. These are the exact same styles
-//  that were previously copy-pasted across files.
-// ═════════════════════════════════════════════
-export const globalStyles = StyleSheet.create({
- 
-  // ─────────────────────────────────────────
-  //  Screen Base
-  // ─────────────────────────────────────────
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.screenBg,
+// ─────────────────────────────────────────────
+//  Styles — scoped to this component only
+// ─────────────────────────────────────────────
+const styles = StyleSheet.create({
+  navBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1a0a40',
+    zIndex: 10,
   },
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
- 
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.divider,
-    marginHorizontal: SPACING.lg,
+  navDrawer: {
+    position: 'absolute', top: 0, right: 0, bottom: 0,
+    width: NAV_WIDTH, flexDirection: 'row', zIndex: 20,
   },
- 
-  // ─────────────────────────────────────────
-  //  Card
-  // ─────────────────────────────────────────
-  card: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: RADIUS.xxl,
-    padding: SPACING.xl,
-    marginBottom: SPACING.md,
-    elevation: 3,
-    shadowColor: COLORS.shadowPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
+  navTab: {
+    width: TAB_WIDTH, alignSelf: 'center', height: 72,
+    backgroundColor: '#4a3fa0',
+    borderTopLeftRadius: 12, borderBottomLeftRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#2d2150', shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.2, shadowRadius: 6,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.base,
+  dotsWrap:    { alignItems: 'center', gap: 4 },
+  dotLine:     { width: 12, height: 2.5, backgroundColor: '#fff', borderRadius: 2 },
+  navTabArrow: { fontSize: 24, color: '#fff', fontWeight: '700' },
+  navContent: {
+    flex: 1, backgroundColor: '#fff',
+    paddingTop: 60, paddingHorizontal: 18,
+    elevation: 12,
+    shadowColor: '#2d2150', shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.12, shadowRadius: 12,
   },
-  cardIcon: {
-    width: 32, height: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.md,
-    fontWeight: TYPOGRAPHY.bold,
-    color: COLORS.textDark,
-    marginLeft: SPACING.sm + 2,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Modal — Overlay & Box
-  // ─────────────────────────────────────────
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: COLORS.overlayBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-  },
-  modalBox: {
-    width: '100%',
-    backgroundColor: COLORS.cardBg,
-    borderRadius: RADIUS.card,
-    padding: SPACING.xxl,
-    elevation: 16,
-    shadowColor: COLORS.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    maxHeight: '88%',
-  },
-  // Bottom-sheet variant (ProjectDetails modal slides up from bottom)
-  modalBoxSheet: {
-    backgroundColor: COLORS.cardBg,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: SPACING.xxl,
-    maxHeight: '90%',
-    elevation: 16,
-    shadowColor: COLORS.shadowDark,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Modal — Typography
-  // ─────────────────────────────────────────
-  modalTitle: {
-    fontSize: TYPOGRAPHY.xl - 1,
-    fontWeight: TYPOGRAPHY.bold,
-    color: COLORS.textDark,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-  },
-  modalLabel: {
-    fontSize: TYPOGRAPHY.xs + 1,
-    fontWeight: TYPOGRAPHY.bold,
-    color: COLORS.textLight,
-    letterSpacing: TYPOGRAPHY.wide,
-    textTransform: 'uppercase',
-    marginBottom: SPACING.xs + 2,
-    marginTop: SPACING.sm + 2,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Modal — Input Fields
-  // ─────────────────────────────────────────
-  modalInput: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm + 2,
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textDark,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  modalInputMulti: {
-    height: 90,
-    paddingTop: SPACING.sm + 2,
-  },
-  modalDivider: {
-    height: 1,
-    backgroundColor: COLORS.primaryLight,
-    marginVertical: SPACING.base,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Modal — List Rows (skills, achievements)
-  // ─────────────────────────────────────────
-  modalListScroll: { maxHeight: 160 },
-  modalListRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 7,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  modalListLabel: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textDark,
-    fontWeight: TYPOGRAPHY.medium,
-  },
-  modalListSub: {
-    fontSize: TYPOGRAPHY.sm,
-    color: COLORS.textLight,
-    marginTop: 1,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Modal — Action Buttons Row
-  //  Used at the bottom of EVERY modal.
-  // ─────────────────────────────────────────
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: SPACING.lg,
-    gap: SPACING.sm + 2,
-  },
-  modalCancelBtn: {
-    paddingVertical: 9,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primaryLight,
-  },
-  modalCancelText: {
-    fontSize: TYPOGRAPHY.base,
-    fontWeight: TYPOGRAPHY.semibold,
-    color: COLORS.primary,
-  },
-  modalSaveBtn: {
-    paddingVertical: 9,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primary,
-  },
-  modalSaveText: {
-    fontSize: TYPOGRAPHY.base,
-    fontWeight: TYPOGRAPHY.semibold,
-    color: COLORS.cardBg,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Delete Button (✕ inside modal list rows)
-  //  Used in Skills modal, Achievements modal,
-  //  and ProjectEditModal.
-  // ─────────────────────────────────────────
-  deleteBtn: {
-    width: 26, height: 26,
-    borderRadius: 13,
-    backgroundColor: COLORS.dangerBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: SPACING.sm,
-  },
-  deleteBtnText: {
-    fontSize: TYPOGRAPHY.sm,
-    color: COLORS.danger,
-    fontWeight: TYPOGRAPHY.bold,
-  },
- 
-  // ─────────────────────────────────────────
-  //  Colour Swatches (skill picker)
-  // ─────────────────────────────────────────
-  colorPickerRow:    { flexDirection: 'row', marginTop: 4, marginBottom: 6 },
-  colorSwatch:       { width: 26, height: 26, borderRadius: 13, marginRight: 8, borderWidth: 2, borderColor: 'transparent' },
-  colorSwatchActive: { borderColor: COLORS.textDark, transform: [{ scale: 1.15 }] },
- 
-  // ─────────────────────────────────────────
-  //  Inline Add Row
-  //  (TextInput + Add button side by side)
-  //  Used in ProjectEditModal for tech + bullets.
-  // ─────────────────────────────────────────
-  inlineAddRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-  },
-  inlineAddBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    paddingVertical: SPACING.sm + 2,
-    paddingHorizontal: SPACING.base,
-  },
-  inlineAddBtnText: {
-    fontSize: TYPOGRAPHY.xs + 2,
-    fontWeight: TYPOGRAPHY.bold,
-    color: COLORS.cardBg,
-  },
+  navHeading:         { fontSize: 10, fontWeight: '700', color: '#b4aed0', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 20 },
+  navItem:            { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 6, position: 'relative' },
+  navItemActive:      { backgroundColor: '#f0eeff' },
+  navItemIcon:        { fontSize: 18, marginRight: 12 },
+  navItemLabel:       { fontSize: 14, fontWeight: '500', color: '#4e4670' },
+  navItemLabelActive: { color: '#4a3fa0', fontWeight: '700' },
+  navActivePip:       { position: 'absolute', right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: '#4a3fa0' },
+  navLogoutDivider:   { height: 1, backgroundColor: '#f0eeff', marginBottom: 10 },
+  navLogoutBtn:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 12, borderRadius: 14, marginBottom: 12, backgroundColor: '#fff0f0' },
+  navLogoutIcon:      { fontSize: 18, marginRight: 12 },
+  navLogoutLabel:     { fontSize: 14, fontWeight: '600', color: '#e05c5c' },
 });
  
+export default SideNavBar;
