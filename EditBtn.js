@@ -7,16 +7,16 @@
  * Props:
  *   onPress — function called when the button is tapped
  */
-
+ 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-
+ 
 const EditBtn = ({ onPress }) => (
   <TouchableOpacity style={styles.editBtn} onPress={onPress} activeOpacity={0.7}>
     <Text style={styles.editBtnIcon}>✏️</Text>
   </TouchableOpacity>
 );
-
+ 
 const styles = StyleSheet.create({
   editBtn: {
     width: 30, height: 30, borderRadius: 15,
@@ -28,5 +28,5 @@ const styles = StyleSheet.create({
   },
   editBtnIcon: { fontSize: 13 },
 });
-
+ 
 export default EditBtn;
